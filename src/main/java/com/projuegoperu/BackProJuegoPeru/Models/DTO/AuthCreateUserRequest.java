@@ -5,9 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record AuthCreateUserRequest(
-//        @NotBlank String username,
-//                                    @NotBlank String password,
-//                                    @Valid AuthCreateRoleRequest roleRequest
+
         @NotBlank String username,
         @NotBlank String password,
 
