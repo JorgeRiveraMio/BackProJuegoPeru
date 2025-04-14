@@ -1,6 +1,10 @@
 package com.projuegoperu.BackProJuegoPeru.Config;
 
+import com.projuegoperu.BackProJuegoPeru.BackProJuegoPeruApplication;
+import com.projuegoperu.BackProJuegoPeru.Config.Filter.JwtTokenValidator;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
+import com.projuegoperu.BackProJuegoPeru.Utils.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,12 +25,14 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
+    @Autowired
+    private JwtUtils jwtUtils;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
@@ -35,11 +41,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))//verificar si es necesario
                 .authorizeHttpRequests(http -> {
                     // EndPoints publicos
-                    http.requestMatchers(HttpMethod.GET, "/auth/hello").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/segurity/**").permitAll();
                     // EndPoints Privados
-                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured").hasRole("usuario");
+                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured1").hasAuthority("cliente");
+                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured2").hasAuthority("admin");
+                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured3").hasAuthority("doctor");
                     http.anyRequest().denyAll();//revisar
                 })
+                .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();
     }
 
@@ -59,6 +68,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 }

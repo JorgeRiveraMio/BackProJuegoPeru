@@ -6,14 +6,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-public class PadreController {
+public class UsuarioController {
     @GetMapping("/hello")
     public String hello() {
         return "Hello World";
     }
 
-    @GetMapping("/hello-secured")
-    public String helloSecured() {
-        return "Hello World secured";
+    @GetMapping("/hello-secured1")
+    public String helloSecured1() {
+        return "cliente";
+    }
+    @GetMapping("/hello-secured2")
+    public String helloSecured2() {
+        return "admin";
+    }
+    @GetMapping("/hello-secured3")
+    public String helloSecured3() {
+        return "doctor";
     }
 }
