@@ -1,10 +1,8 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
+import com.projuegoperu.BackProJuegoPeru.Config.SecurityConfig;
 import com.projuegoperu.BackProJuegoPeru.Models.DAO.UsuarioDao;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthCreateUserRequest;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthLoginRequest;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthResponse;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
@@ -15,6 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,11 +32,16 @@ public class AuthenticationController {
     private AuthenticateService authenticate;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private UserDetailsServiceImpl userDetailService;
+
     @Autowired
     private UsuarioService usuarioService;
-    @Autowired
-    private EmailService mailManager;
+
+//    @Autowired
+//    private EmailService mailManager;
 
     // Un mapa temporal para guardar clientes pendientes de verificación
     private final Map<String, String> verificationCodes = new HashMap<>(); // Email -> Código
@@ -52,7 +57,6 @@ public class AuthenticationController {
             Map<String, String> response = new HashMap<>();
             response.put("message", "El correo ya está registrado.");
             return ResponseEntity.badRequest().body(response);
-
         }
         // Enviar el código al correo del cliente
         String code = authenticate.sendMessageUser(cliente.getUsername());
@@ -65,6 +69,40 @@ public class AuthenticationController {
         response.put("message", "Código de verificación enviado al correo.");
         return ResponseEntity.ok(response);
     }
+
+    // Validar el código ingresado por el usuario
+    @PostMapping("/validarCodigo")
+    public ResponseEntity<Object> validarCodigo(@RequestBody AuthValidateCodRequest request) {
+        String email = request.username();
+        String code = request.code();
+
+        // Logs para depuración, esto es solo para ver el la consola los datos (es para pruebas, eliminen si quieren xd )
+        System.out.println("Email recibido: " + email);
+        System.out.println("Código recibido: " + code);
+        System.out.println("Código esperado: " + verificationCodes.get(email));
+
+        // Verificar si el código ingresado coincide con el que fue enviado
+        if (verificationCodes.containsKey(email) && verificationCodes.get(email).equals(code)) {
+            // Obtener el cliente temporal
+            UsuarioDto cliente = pendingClients.get(email);
+            // Guardar el cliente en la base de datos
+            String passwordEncriptado = passwordEncoder.encode(cliente.getPassword());
+            cliente.setPassword(passwordEncriptado);
+            this.userDetailService.createUser(cliente);
+            // Eliminar el cliente y el código del mapa temporal
+            verificationCodes.remove(email);
+            pendingClients.remove(email);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Código validado. Usuario registrado exitosamente.");
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Código de verificación incorrecto.");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
 
 
     @PostMapping("/sign-up")

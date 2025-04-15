@@ -184,7 +184,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             userEntity.setUsername(username);
             userEntity.setPassword(password);
             userEntity.setCreationDate(LocalDateTime.now());
-            userEntity.setTipoUsuario("CLIENTE");
+            userEntity.setTipoUsuario(createRoleRequest.getTipoUsuario().toString());
             userEntity.setRoles(roleEntityList);
 
         UsuarioDao userSaved = usuarioRespository.save(userEntity);
@@ -193,7 +193,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         userSaved.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_".concat(role.getName()))));
 
-        //userSaved.getRoles().stream().flatMap(role -> role.getPermissionList().stream()).forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getName())));
 
         SecurityContext securityContextHolder = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(userSaved, null, authorities);
