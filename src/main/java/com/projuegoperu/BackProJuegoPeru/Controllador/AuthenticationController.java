@@ -50,20 +50,21 @@ public class AuthenticationController {
 
     // Enviar código de verificación al correo
     @PostMapping("/enviarCodigo")
-    public ResponseEntity<Object> enviarCodigo(@RequestBody UsuarioDto cliente) {
-        // Validar si el correo ya esta registrado
-        if(usuarioService.obtenerUsuario(cliente.getUsername()) != null) {
+    public ResponseEntity<Object> enviarCodigo(@RequestBody UsuarioDto usuario) {
+
+
+        if(usuarioService.obtenerUsuario(usuario.getUsername()) != null) {
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "El correo ya está registrado.");
             return ResponseEntity.badRequest().body(response);
         }
         // Enviar el código al correo del cliente
-        String code = authenticate.sendMessageUser(cliente.getUsername());
+        String code = authenticate.sendMessageUser(usuario.getUsername());
 
         // Guardar el correo y el código temporalmente
-        verificationCodes.put(cliente.getUsername(), code);
-        pendingClients.put(cliente.getUsername(), cliente);
+        verificationCodes.put(usuario.getUsername(), code);
+        pendingClients.put(usuario.getUsername(), usuario);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Código de verificación enviado al correo.");
