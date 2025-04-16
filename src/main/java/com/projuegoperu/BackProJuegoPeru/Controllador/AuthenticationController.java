@@ -13,14 +13,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,7 +103,14 @@ public class AuthenticationController {
         }
     }
 
-
+    @GetMapping("/actual-usuario")
+    public ResponseEntity<?> obtenerUsuarioActual(Principal principal) {
+        UserDetails userDetails = this.userDetailService.loadUserByUsername(principal.getName());//toma el nombre de usuario en nuestro caso el correo
+        if (userDetails instanceof UsuarioDto) {// si el usuario es un cliente, pues devuelve su informacion
+            return ResponseEntity.ok((UsuarioDto) userDetails);
+        }
+        return ResponseEntity.badRequest().body("Usuario no encontrado");//si no se encuentra entonces no hay usuario
+    }
 
     @PostMapping("/sign-up")
     public ResponseEntity<AuthResponse> register(@RequestBody @Valid UsuarioDto userRequest){
