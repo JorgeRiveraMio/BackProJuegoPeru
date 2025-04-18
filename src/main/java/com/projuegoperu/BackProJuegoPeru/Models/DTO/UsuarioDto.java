@@ -1,9 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Models.DTO;
 
-import com.projuegoperu.BackProJuegoPeru.Models.DAO.RolDao;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
-import com.projuegoperu.BackProJuegoPeru.Models.Rol;
-import jakarta.persistence.*;
+//import com.projuegoperu.BackProJuegoPeru.Models.Rol;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

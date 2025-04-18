@@ -1,6 +1,4 @@
-package com.projuegoperu.BackProJuegoPeru.Models.DAO;
-
-import com.projuegoperu.BackProJuegoPeru.Models.Rol;
+package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;

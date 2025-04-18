@@ -1,4 +1,4 @@
-package com.projuegoperu.BackProJuegoPeru.Models.DAO;
+package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

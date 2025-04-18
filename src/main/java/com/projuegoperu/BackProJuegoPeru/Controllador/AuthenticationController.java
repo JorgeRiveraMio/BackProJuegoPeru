@@ -1,27 +1,27 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
-import com.projuegoperu.BackProJuegoPeru.Config.SecurityConfig;
-import com.projuegoperu.BackProJuegoPeru.Models.DAO.UsuarioDao;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
-import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.UsuarioDao;
+import com.projuegoperu.BackProJuegoPeru.Repository.PasswordResetTokenRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import com.projuegoperu.BackProJuegoPeru.Services.UsuarioService;
-import com.projuegoperu.BackProJuegoPeru.Utils.JwtUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/segurity")
@@ -39,8 +39,11 @@ public class AuthenticationController {
     @Autowired
     private UsuarioService usuarioService;
 
-//    @Autowired
-//    private EmailService mailManager;
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private EmailService mailManager;
 
     // Un mapa temporal para guardar clientes pendientes de verificación
     private final Map<String, String> verificationCodes = new HashMap<>(); // Email -> Código
@@ -51,8 +54,8 @@ public class AuthenticationController {
     @PostMapping("/enviarCodigo")
     public ResponseEntity<Object> enviarCodigo(@RequestBody UsuarioDto usuario) {
 
-
-        if(usuarioService.obtenerUsuario(usuario.getUsername()) != null) {
+        Optional<UsuarioDao> usuarioDaoOptional = usuarioService.obtenerUsuario(usuario.getUsername());
+        if(usuarioDaoOptional.isPresent()) {
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "El correo ya está registrado.");
@@ -112,13 +115,58 @@ public class AuthenticationController {
         return ResponseEntity.badRequest().body("Usuario no encontrado");//si no se encuentra entonces no hay usuario
     }
 
-    @PostMapping("/sign-up")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Valid UsuarioDto userRequest){
-        return new ResponseEntity<>(this.userDetailService.createUser(userRequest), HttpStatus.CREATED);
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String username) {
+        Optional<UsuarioDao> optionalUsuario = usuarioService.obtenerUsuario(username);
+        if (optionalUsuario.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+
+        UsuarioDao usuario = optionalUsuario.get();
+        String token = UUID.randomUUID().toString();
+
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setToken(token);
+        resetToken.setUsuario(usuario);
+        resetToken.setExpiration(LocalDateTime.now().plusMinutes(15));
+        tokenRepository.save(resetToken);
+
+        mailManager.enviarCorreoCambioPassword(username, token);
+        return ResponseEntity.ok("Correo de recuperación enviado");
     }
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String nuevaContrasena) {
+        Optional<PasswordResetToken> optionalToken = tokenRepository.findByToken(token);
+
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token inválido");
+        }
+
+        PasswordResetToken resetToken = optionalToken.get();
+        if (resetToken.getExpiration().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expirado");
+        }
+
+        UsuarioDao usuario = resetToken.getUsuario();
+        usuario.setPassword(new BCryptPasswordEncoder().encode(nuevaContrasena));
+        usuarioService.Guardar(usuario);
+
+        tokenRepository.delete(resetToken); // invalidar token
+        return ResponseEntity.ok("Contraseña actualizada correctamente");
+    }
+
 
     @PostMapping("/log-in")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthLoginRequest userRequest){
-        return new ResponseEntity<>(this.userDetailService.loginUser(userRequest), HttpStatus.OK);
+
+    try {
+            AuthResponse response = this.userDetailService.loginUser(userRequest);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+//        return new ResponseEntity<>(this.userDetailService.loginUser(userRequest), HttpStatus.OK);
     }
 }

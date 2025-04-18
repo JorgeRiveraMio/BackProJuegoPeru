@@ -1,4 +1,4 @@
-package com.projuegoperu.BackProJuegoPeru.Models.DAO;
+package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoEmpleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoEmpleado;

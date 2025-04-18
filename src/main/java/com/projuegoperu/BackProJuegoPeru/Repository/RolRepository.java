@@ -1,7 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Repository;
 
-import com.projuegoperu.BackProJuegoPeru.Models.DAO.RolDao;
-import com.projuegoperu.BackProJuegoPeru.Models.Rol;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.RolDao;
+//import com.projuegoperu.BackProJuegoPeru.Models.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,12 +1,12 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
-import com.projuegoperu.BackProJuegoPeru.Models.DAO.UsuarioDao;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.UsuarioDao;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -25,7 +25,7 @@ public class UsuarioService {
         return usuarioRespository.findById(id).orElse(null);
     }
 
-    public UsuarioDao obtenerUsuario(String username) {
+    public Optional<UsuarioDao> obtenerUsuario(String username) {
         return usuarioRespository.findByUsername(username);
     }
 
