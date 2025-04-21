@@ -22,7 +22,7 @@ public class PasswordResetToken {
 
     @OneToOne
     @JoinColumn(name = "usuario_id")
-    private UsuarioDao usuario;
+    private Usuario usuario;
 
     private LocalDateTime expiration;
 

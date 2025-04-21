@@ -1,4 +1,5 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Entity;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import java.util.Set;
 @Table(name = "usuario")
 @PrimaryKeyJoinColumn(name = "idPersona")  // Correcto para herencia JOINED
 @Entity
-public class UsuarioDao extends PersonaDao implements UserDetails {
+public class Usuario extends Persona implements UserDetails {
     @Column(name = "username")
     private String username;
 
@@ -29,7 +30,8 @@ public class UsuarioDao extends PersonaDao implements UserDetails {
     private LocalDateTime creationDate;
 
     @Column(name = "tipo_usuario")
-    private String tipoUsuario;
+    @Enumerated(EnumType.STRING)
+    private TipoUsuario tipoUsuario;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -37,7 +39,7 @@ public class UsuarioDao extends PersonaDao implements UserDetails {
             joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
-    private Set<RolDao> roles;
+    private Set<Rol> roles;
     @PrePersist
     protected void onCreate() {
         this.creationDate = LocalDateTime.now();

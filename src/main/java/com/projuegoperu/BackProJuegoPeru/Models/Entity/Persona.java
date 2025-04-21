@@ -15,7 +15,7 @@ import lombok.Setter;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "persona")
-public class PersonaDao {
+public class Persona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idPersona;

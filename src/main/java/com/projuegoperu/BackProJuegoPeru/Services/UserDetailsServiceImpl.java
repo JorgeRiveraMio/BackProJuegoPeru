@@ -1,13 +1,14 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
 
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.RolDao;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.UsuarioDao;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthLoginRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthResponse;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
 //import com.projuegoperu.BackProJuegoPeru.Models.Rol;
 //import com.projuegoperu.BackProJuegoPeru.Models.Usuario;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import com.projuegoperu.BackProJuegoPeru.Utils.JwtUtils;
@@ -52,11 +53,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (username == null || username.isEmpty()) {
             throw new UsernameNotFoundException("Username cannot be null or empty");
         }
-        Optional<UsuarioDao> usuarioDaoOptional = usuarioRespository.findByUsername(username);
+        Optional<Usuario> usuarioDaoOptional = usuarioRespository.findByUsername(username);
         if (usuarioDaoOptional.isEmpty()) {
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
-        UsuarioDao usuario = usuarioDaoOptional.get();
+        Usuario usuario = usuarioDaoOptional.get();
         List<SimpleGrantedAuthority>authorities = new ArrayList<>();
 
         usuario.getRoles().forEach(role -> {authorities.add(new SimpleGrantedAuthority(role.getName()));});
@@ -68,30 +69,35 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 
         String username = createRoleRequest.getUsername();
+        System.out.println("Contraseña de registro: " +  createRoleRequest.getPassword());
         String password =passwordEncoder.encode( createRoleRequest.getPassword());
+        System.out.println("Contraseña de registro hash: " +  password);
         List<String> rolesRequest = createRoleRequest.getRoles().stream()
                 .map(rol -> rol) // Suponiendo que 'getNombre()' te da el nombre del rol
                 .collect(Collectors.toList());
 
 
-        Set<RolDao> roleEntityList = rolRepository.findByNameIn(rolesRequest).stream().collect(Collectors.toSet());
+        Set<Rol> roleEntityList = rolRepository.findByNameIn(rolesRequest).stream().collect(Collectors.toSet());
 
         if (roleEntityList.isEmpty()) {
             throw new IllegalArgumentException("The roles specified does not exist.");
         }
 
-            UsuarioDao userEntity = new UsuarioDao();
-            userEntity.setIdPersona(1);
+            Usuario userEntity = new Usuario();
+//            userEntity.setIdPersona(1);
             userEntity.setName(createRoleRequest.getName());
             userEntity.setLastname(createRoleRequest.getLastname());
             userEntity.setDni(createRoleRequest.getDni());
             userEntity.setUsername(username);
             userEntity.setPassword(password);
             userEntity.setCreationDate(LocalDateTime.now());
-            userEntity.setTipoUsuario(createRoleRequest.getTipoUsuario().toString());
-            userEntity.setRoles(roleEntityList);
+//            userEntity.setTipoUsuario(createRoleRequest.getTipoUsuario().toString());
+        userEntity.setTipoUsuario(createRoleRequest.getTipoUsuario()); // directo, sin usar valueOf
 
-        UsuarioDao userSaved = usuarioRespository.save(userEntity);
+
+        userEntity.setRoles(roleEntityList);
+
+        Usuario userSaved = usuarioRespository.save(userEntity);
 
         ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -103,7 +109,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         String accessToken = jwtUtils.createToken(authentication);
         List<String> rolesList = userSaved.getRoles().stream()
-                .map(RolDao::getName)
+                .map(Rol::getName)
                 .toList();
         AuthResponse authResponse = new AuthResponse(username, "User created successfully",rolesList, accessToken, true);
         return authResponse;
@@ -118,21 +124,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         String accessToken = jwtUtils.createToken(authentication);
 
-        Optional<UsuarioDao> usuarioDaoOptional = usuarioRespository.findByUsername(username);
+        Optional<Usuario> usuarioDaoOptional = usuarioRespository.findByUsername(username);
         if (usuarioDaoOptional.isEmpty()) {
             throw new UsernameNotFoundException("Usuario no encontrado");
         }
-        UsuarioDao usuario = usuarioDaoOptional.get();
 
-        if(!passwordEncoder.matches(password, usuario.getPassword())) {
-            throw new UsernameNotFoundException("Contraseña incorrecta");
-        }
-        List<String>rolesList =usuario.getRoles().stream().map(RolDao::getName).collect(Collectors.toList());
-        AuthResponse authResponse = new AuthResponse(username, "User loged succesfully",rolesList, accessToken, true);
-        return authResponse;
+        Usuario usuario = usuarioDaoOptional.get();
+
+        List<String> rolesList = usuario.getRoles()
+                .stream()
+                .map(Rol::getName)
+                .collect(Collectors.toList());
+
+        return new AuthResponse(username, "User logged successfully", rolesList, accessToken, true);
     }
+
     public Authentication authenticate(String username, String password) {
         UserDetails userDetails = this.loadUserByUsername(username);
+        // Loguear las contraseñas antes de la comparación
+        System.out.println("Contraseña proporcionada: " + password);
+        System.out.println("Contraseña almacenada (cifrada): " + userDetails.getPassword());
 
         if (userDetails == null) {
             throw new BadCredentialsException(String.format("Invalid username or password"));
@@ -142,7 +153,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new BadCredentialsException("Incorrect Password");
         }
 
-        return new UsernamePasswordAuthenticationToken(username, password, userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
     }
 
 

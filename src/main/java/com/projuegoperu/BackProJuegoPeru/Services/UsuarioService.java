@@ -1,6 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.UsuarioDao;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,19 +13,19 @@ public class UsuarioService {
     @Autowired
     private UsuarioRespository usuarioRespository;
 
-    public List<UsuarioDao> Listar() {
+    public List<Usuario> Listar() {
         return usuarioRespository.findAll();
     }
 
-    public UsuarioDao Guardar(UsuarioDao u) {
+    public Usuario Guardar(Usuario u) {
         return usuarioRespository.save(u);
     }
 
-    public UsuarioDao Obtener(Integer id) {
+    public Usuario Obtener(Integer id) {
         return usuarioRespository.findById(id).orElse(null);
     }
 
-    public Optional<UsuarioDao> obtenerUsuario(String username) {
+    public Optional<Usuario> obtenerUsuario(String username) {
         return usuarioRespository.findByUsername(username);
     }
 

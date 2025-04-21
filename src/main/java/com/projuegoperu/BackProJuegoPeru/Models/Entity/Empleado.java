@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "empleado")
 @PrimaryKeyJoinColumn(name = "idPersona")
-public class EmpleadoDao  extends  UsuarioDao{
+public class Empleado extends Usuario {
 
     @Enumerated(EnumType.STRING)
     private EstadoEmpleado estado;

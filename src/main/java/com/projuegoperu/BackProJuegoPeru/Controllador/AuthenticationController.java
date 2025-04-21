@@ -2,7 +2,7 @@ package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.UsuarioDao;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.PasswordResetTokenRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
+
 
 @RestController
 @RequestMapping("/segurity")
@@ -54,7 +55,7 @@ public class AuthenticationController {
     @PostMapping("/enviarCodigo")
     public ResponseEntity<Object> enviarCodigo(@RequestBody UsuarioDto usuario) {
 
-        Optional<UsuarioDao> usuarioDaoOptional = usuarioService.obtenerUsuario(usuario.getUsername());
+        Optional<Usuario> usuarioDaoOptional = usuarioService.obtenerUsuario(usuario.getUsername());
         if(usuarioDaoOptional.isPresent()) {
 
             Map<String, String> response = new HashMap<>();
@@ -89,8 +90,8 @@ public class AuthenticationController {
             // Obtener el cliente temporal
             UsuarioDto cliente = pendingClients.get(email);
             // Guardar el cliente en la base de datos
-            String passwordEncriptado = passwordEncoder.encode(cliente.getPassword());
-            cliente.setPassword(passwordEncriptado);
+//            String passwordEncriptado = passwordEncoder.encode(cliente.getPassword());
+            cliente.setPassword(cliente.getPassword());
             this.userDetailService.createUser(cliente);
             // Eliminar el cliente y el código del mapa temporal
             verificationCodes.remove(email);
@@ -119,12 +120,12 @@ public class AuthenticationController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam String username) {
-        Optional<UsuarioDao> optionalUsuario = usuarioService.obtenerUsuario(username);
+        Optional<Usuario> optionalUsuario = usuarioService.obtenerUsuario(username);
         if (optionalUsuario.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
         }
 
-        UsuarioDao usuario = optionalUsuario.get();
+        Usuario usuario = optionalUsuario.get();
         String token = UUID.randomUUID().toString();
 
         PasswordResetToken resetToken = new PasswordResetToken();
@@ -149,7 +150,7 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expirado");
         }
 
-        UsuarioDao usuario = resetToken.getUsuario();
+        Usuario usuario = resetToken.getUsuario();
         usuario.setPassword(new BCryptPasswordEncoder().encode(nuevaContrasena));
         usuarioService.Guardar(usuario);
 
@@ -160,7 +161,6 @@ public class AuthenticationController {
 
     @PostMapping("/log-in")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthLoginRequest userRequest){
-
     try {
             AuthResponse response = this.userDetailService.loginUser(userRequest);
             return ResponseEntity.ok(response);
