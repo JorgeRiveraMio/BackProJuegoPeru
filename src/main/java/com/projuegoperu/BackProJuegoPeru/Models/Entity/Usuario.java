@@ -1,4 +1,5 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Entity;
+
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,9 +18,10 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "usuario")
-@PrimaryKeyJoinColumn(name = "idPersona")  // Correcto para herencia JOINED
+@PrimaryKeyJoinColumn(name = "idPersona") // Correcto para herencia JOINED
 @Entity
 public class Usuario extends Persona implements UserDetails {
+
     @Column(name = "username")
     private String username;
 
@@ -31,15 +33,12 @@ public class Usuario extends Persona implements UserDetails {
 
     @Column(name = "tipo_usuario")
     @Enumerated(EnumType.STRING)
-    private TipoUsuario tipoUsuario;
+    private TipoUsuario tipoUsuario; // EMPLEADO o CLIENTE
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "usuario_rol",
-            joinColumns = @JoinColumn(name = "usuario_id"),
-            inverseJoinColumns = @JoinColumn(name = "rol_id")
-    )
-    private Set<Rol> roles;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "rol_id", nullable = false)
+    private Rol rol;
+    
     @PrePersist
     protected void onCreate() {
         this.creationDate = LocalDateTime.now();

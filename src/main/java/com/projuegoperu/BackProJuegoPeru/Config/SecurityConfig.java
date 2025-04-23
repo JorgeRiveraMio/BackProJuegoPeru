@@ -47,12 +47,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))//verificar si es necesario
                 .authorizeHttpRequests(http -> {
                     // EndPoints publicos
-                    http.requestMatchers(HttpMethod.POST, "/segurity/**").permitAll();
-                    http.requestMatchers(HttpMethod.GET, "/segurity/**").permitAll();
+                    http.requestMatchers(HttpMethod.GET, "/consultar-dni").permitAll();
+                    http.requestMatchers(HttpMethod.POST,  "/security/**").permitAll();
+                    http.requestMatchers(HttpMethod.GET,  "/security/**").permitAll();
                     // EndPoints Privados
                     http.requestMatchers(HttpMethod.GET, "/auth/hello-secured1").hasAuthority("cliente");
                     http.requestMatchers(HttpMethod.GET, "/auth/hello-secured2").hasAuthority("admin");
-                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured3").hasAuthority("doctor");
+                    http.requestMatchers(HttpMethod.GET, "/auth/hello-secured3").hasAuthority("terapeuta");
                     http.anyRequest().denyAll();//revisar
                 })
                 .cors(Customizer.withDefaults())
@@ -90,4 +91,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+    
 }

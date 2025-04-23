@@ -3,6 +3,7 @@ package com.projuegoperu.BackProJuegoPeru.Controllador;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.PasswordResetTokenRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
@@ -25,7 +26,7 @@ import java.util.*;
 
 
 @RestController
-@RequestMapping("/segurity")
+@RequestMapping("/security")
 public class AuthenticationController {
 
     @Autowired
@@ -107,16 +108,99 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping("/actual-usuario")
-    public ResponseEntity<?> obtenerUsuarioActual(Principal principal) {
-        UserDetails userDetails = this.userDetailService.loadUserByUsername(principal.getName());//toma el nombre de usuario en nuestro caso el correo
-        if (userDetails instanceof UsuarioDto) {// si el usuario es un cliente, pues devuelve su informacion
-            return ResponseEntity.ok((UsuarioDto) userDetails);
+    @PostMapping("/enviarCodigoEmpleado")
+    public ResponseEntity<Object> enviarCodigoEmpleado(@RequestBody EmpleadoDto empleado) {
+        Optional<Usuario> usuarioDaoOptional = usuarioService.obtenerUsuario(empleado.getUsername());
+        if(usuarioDaoOptional.isPresent()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "El correo ya está registrado.");
+            return ResponseEntity.badRequest().body(response);
         }
-        return ResponseEntity.badRequest().body("Usuario no encontrado");//si no se encuentra entonces no hay usuario
+
+        // Enviar el código al correo del empleado
+        String code = authenticate.sendMessageUser(empleado.getUsername());
+
+        // Guardar el correo y el código temporalmente
+        verificationCodes.put(empleado.getUsername(), code);
+        pendingClients.put(empleado.getUsername(), empleado);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Código de verificación enviado al correo.");
+        return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/validarCodigoEmpleado")
+    public ResponseEntity<Object> validarCodigoEmpleado(@RequestBody AuthValidateCodRequest request) {
+        String email = request.username();
+        String code = request.code();
 
+        if (verificationCodes.containsKey(email) && verificationCodes.get(email).equals(code)) {
+            EmpleadoDto empleado = (EmpleadoDto) pendingClients.get(email);
+            empleado.setPassword(empleado.getPassword()); // No olvidar encriptar la contraseña antes de guardarla
+            this.userDetailService.createUser(empleado);
+
+            // Eliminar el cliente y el código del mapa temporal
+            verificationCodes.remove(email);
+            pendingClients.remove(email);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Código validado. Empleado registrado exitosamente.");
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Código de verificación incorrecto.");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/actual-usuario")
+    public ResponseEntity<?> obtenerUsuarioActual(Principal principal) {
+        Optional<Usuario> usuarioOptional = usuarioService.obtenerUsuario(principal.getName());
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("Usuario no encontrado");
+        }
+        Usuario usuario = usuarioOptional.get();
+        UsuarioDto usuarioDto = new UsuarioDto();
+        usuarioDto.setUsername(usuario.getUsername());
+        usuarioDto.setName(usuario.getName());
+        usuarioDto.setLastname(usuario.getLastname());
+        usuarioDto.setDni(usuario.getDni());
+        usuarioDto.setTipoUsuario(usuario.getTipoUsuario());
+        usuarioDto.setCreationDate(usuario.getCreationDate());
+        usuarioDto.setRol(List.of(new RolDto(usuario.getRol().getName()))); 
+        return ResponseEntity.ok(usuarioDto);
+    }
+
+    // Endpoint separado para obtener un Empleado
+    @GetMapping("/actual-empleado")
+    public ResponseEntity<?> obtenerEmpleadoActual(Principal principal) {
+        Optional<Usuario> usuarioOptional = usuarioService.obtenerUsuario(principal.getName());
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("Empleado no encontrado");
+        }
+        Usuario usuario = usuarioOptional.get();
+
+        // Verificar si es un Empleado
+        if (usuario.getTipoUsuario() == TipoUsuario.EMPLEADO) {
+            EmpleadoDto empleadoDto = new EmpleadoDto();
+            empleadoDto.setUsername(usuario.getUsername());
+            empleadoDto.setName(usuario.getName());
+            empleadoDto.setLastname(usuario.getLastname());
+            empleadoDto.setDni(usuario.getDni());
+            empleadoDto.setTipoUsuario(usuario.getTipoUsuario());
+            empleadoDto.setCreationDate(usuario.getCreationDate());
+            empleadoDto.setRol(List.of(new RolDto(usuario.getRol().getName())));
+
+            com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado empleado = (com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado) usuario;
+            empleadoDto.setTipoEmpleado(empleado.getTipoEmpleado());
+            empleadoDto.setEspecialidad(empleado.getEspecialidad());
+            empleadoDto.setEstadoEmpleado(empleado.getEstadoEmpleado());
+
+            return ResponseEntity.ok(empleadoDto);
+        } else {
+            return ResponseEntity.badRequest().body("El usuario no es un empleado");
+        }
+    }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam String username) {
@@ -126,6 +210,11 @@ public class AuthenticationController {
         }
 
         Usuario usuario = optionalUsuario.get();
+
+        // Verificar si ya existe un token de restablecimiento para el usuario
+        Optional<PasswordResetToken> existingToken = tokenRepository.findByUsuario(usuario);
+        existingToken.ifPresent(tokenRepository::delete); // Eliminar token anterior si existe
+
         String token = UUID.randomUUID().toString();
 
         PasswordResetToken resetToken = new PasswordResetToken();
@@ -135,8 +224,10 @@ public class AuthenticationController {
         tokenRepository.save(resetToken);
 
         mailManager.enviarCorreoCambioPassword(username, token);
-        return ResponseEntity.ok("Correo de recuperación enviado");
+        return ResponseEntity.ok(Map.of("message", "Correo de recuperación enviado"));
     }
+
+    
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String nuevaContrasena) {
         Optional<PasswordResetToken> optionalToken = tokenRepository.findByToken(token);
@@ -146,6 +237,10 @@ public class AuthenticationController {
         }
 
         PasswordResetToken resetToken = optionalToken.get();
+            // Depuración: Imprimir la hora actual y la expiración del token
+        LocalDateTime currentTime = LocalDateTime.now();
+        System.out.println("Hora actual: " + currentTime);
+        System.out.println("Hora de expiración del token: " + resetToken.getExpiration());
         if (resetToken.getExpiration().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expirado");
         }
@@ -155,7 +250,7 @@ public class AuthenticationController {
         usuarioService.Guardar(usuario);
 
         tokenRepository.delete(resetToken); // invalidar token
-        return ResponseEntity.ok("Contraseña actualizada correctamente");
+        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente"));
     }
 
 

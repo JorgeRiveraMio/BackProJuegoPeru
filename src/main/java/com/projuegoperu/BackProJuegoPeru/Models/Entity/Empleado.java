@@ -9,22 +9,25 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "empleado")
-@PrimaryKeyJoinColumn(name = "idPersona")
+@PrimaryKeyJoinColumn(name = "idPersona") // Herencia JOINED con Usuario
 public class Empleado extends Usuario {
 
     @Enumerated(EnumType.STRING)
-    private EstadoEmpleado estado;
+    @Column(name = "tipo_empleado", nullable = false)
+    private TipoEmpleado tipoEmpleado; // ADMIN, TERAPEUTA
+
+    @Column(name = "especialidad")
+    private String especialidad; // Opcional, si es TERAPEUTA
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_empleado")
-    private TipoEmpleado tipoEmpleado;
+    @Column(name = "estado_empleado", nullable = false)
+    private EstadoEmpleado estadoEmpleado; // LIBRE, OCUPADO, VACACIONES
 
-    @Column(name = "fecha_contratacion")
-    private LocalDate fechaContratacion;
 }

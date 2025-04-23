@@ -22,6 +22,6 @@ public class UsuarioController {
     }
     @GetMapping("/hello-secured3")
     public String helloSecured3() {
-        return "doctor";
+        return "terapeuta";
     }
 }

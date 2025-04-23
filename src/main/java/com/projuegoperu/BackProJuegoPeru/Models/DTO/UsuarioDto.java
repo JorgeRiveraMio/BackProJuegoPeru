@@ -30,5 +30,6 @@ public class UsuarioDto  extends  PersonaDto{
     private TipoUsuario tipoUsuario;
 
     @NotEmpty(message = "Debe asignar al menos un rol")
-    private List<String> roles;
+    private List<RolDto> rol;
+
 }

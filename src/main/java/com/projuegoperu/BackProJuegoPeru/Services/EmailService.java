@@ -59,21 +59,21 @@ public class EmailService {
     }
 
 
-public void enviarCorreoCambioPassword(String to, String token) {
-    String link = "http://localhost:4200/nuevaContrasena?token=" + token;
-    MimeMessage message = javaMailSender.createMimeMessage();
+    public void enviarCorreoCambioPassword(String to, String token) {
+        String link = "http://localhost:4200/authentication/reset-password/" + to + "?token=" + token;
+        MimeMessage message = javaMailSender.createMimeMessage();
 
-    try {
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(to);
-        helper.setSubject("Recuperación de contraseña");
-        String content = "Haz clic en el siguiente enlace para cambiar tu contraseña: <a href=\"" + link + "\">Cambiar contraseña</a>";
-        helper.setText(content, true);
-        helper.setFrom(fromEmail);
-        javaMailSender.send(message);
-    } catch (MessagingException e) {
-        throw new RuntimeException("Error al enviar el correo de recuperación: " + e.getMessage(), e);
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(to);
+            helper.setSubject("Recuperación de contraseña");
+            String content = "Haz clic en el siguiente enlace para cambiar tu contraseña: <a href=\"" + link + "\">Cambiar contraseña</a>";
+            helper.setText(content, true);
+            helper.setFrom(fromEmail);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error al enviar el correo de recuperación: " + e.getMessage(), e);
+        }
     }
-}
 
 }
