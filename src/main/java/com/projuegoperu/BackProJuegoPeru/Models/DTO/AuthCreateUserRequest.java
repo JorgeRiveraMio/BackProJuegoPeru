@@ -8,8 +8,6 @@ public record AuthCreateUserRequest(
 
         @NotBlank String username,
         @NotBlank String password,
-
-        // Campos heredados de Persona
         @NotBlank(message = "El name no puede estar vacío") String name,
         @NotBlank(message = "El lastname no puede estar vacío") String lastname,
         @NotBlank(message = "El DNI no puede estar vacío")

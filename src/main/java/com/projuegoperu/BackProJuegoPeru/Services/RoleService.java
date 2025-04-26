@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
 
 @Service
 public class RoleService {
@@ -19,21 +21,17 @@ public class RoleService {
     public void init() {
         // Lista de roles que quieres verificar
         List<String> roleNames = Arrays.asList("ROLE_CLIENTE", "ROLE_ADMIN", "ROLE_TERAPEUTA");
-        
-        // Buscar si alguno de estos roles ya existe
-        List<Rol> existingRoles = rolRepository.findByNameIn(roleNames);
-        
-        // Convertir la lista de roles existentes a un set para una búsqueda rápida
-        List<String> existingRoleNames = existingRoles.stream()
-                                                    .map(Rol::getName)
-                                                    .toList();
 
-        // Agregar los roles que no existan en la base de datos
+        // Verificar si los roles existen uno a uno
         for (String roleName : roleNames) {
-            if (!existingRoleNames.contains(roleName)) {
+            Optional<Rol> existingRole = rolRepository.findByName(roleName);
+            
+            // Si el rol no existe, lo creamos
+            if (existingRole.isEmpty()) {
                 // Si el rol no existe, lo creamos
                 rolRepository.save(new Rol(roleName));
             }
         }
     }
+
 }

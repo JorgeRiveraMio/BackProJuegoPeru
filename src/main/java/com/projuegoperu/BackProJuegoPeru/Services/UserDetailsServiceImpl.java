@@ -1,26 +1,25 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
 
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Cliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthLoginRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthResponse;
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.ClienteDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoEmpleado;
-//import com.projuegoperu.BackProJuegoPeru.Models.Rol;
-//import com.projuegoperu.BackProJuegoPeru.Models.Usuario;
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import com.projuegoperu.BackProJuegoPeru.Utils.JwtUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,10 +27,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -67,68 +64,96 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new User(usuario.getUsername(), usuario.getPassword(), authorities);  // Cambio aquí para que use el email
 
     }
-    public AuthResponse createUser(UsuarioDto createRoleRequest) {
-        // Verificar si es un empleado o usuario común
-        String username = createRoleRequest.getUsername();
-        System.out.println("Contraseña de registro: " + createRoleRequest.getPassword());
-        String password = passwordEncoder.encode(createRoleRequest.getPassword());
-        System.out.println("Contraseña de registro hash: " + password);
 
-        List<String> rolesRequest = createRoleRequest.getRol().stream()
-        .map(rol -> rol.getName()) // Obtener el nombre del rol, suponiendo que RolDto tiene un método getName()
-        .collect(Collectors.toList());
+    @Transactional
+    public AuthResponse createUser(UsuarioDto usuarioDto) {
+        // Extraer username y codificar la contraseña
+        String username = usuarioDto.getUsername();
+        String password = passwordEncoder.encode(usuarioDto.getPassword());
+        System.out.println("Creando usuario: " + usuarioDto.getUsername());
 
-        Set<Rol> roleEntityList = rolRepository.findByNameIn(rolesRequest).stream().collect(Collectors.toSet());
-
-        if (roleEntityList.isEmpty()) {
-            throw new IllegalArgumentException("The roles specified do not exist.");
+        // Verificar si ya existe un usuario con el mismo username
+        Optional<Usuario> existingUser = usuarioRespository.findByUsername(username);
+        if (existingUser.isPresent()) {
+            throw new IllegalArgumentException("El username ya está registrado.");
         }
+
+        // Obtener el nombre del rol directamente desde el DTO
+        String rolNombre = usuarioDto.getRol().getName();
+
+        // Buscar el rol existente en la base de datos
+        Rol rolAsignado = rolRepository.findByName(rolNombre)
+                .orElseThrow(() -> new IllegalArgumentException("El rol especificado no existe."));
+
+        // Log para depurar el rol asignado
+        System.out.println("Rol asignado: " + rolAsignado.getName());
 
         Usuario userEntity;
 
-        if (createRoleRequest.getTipoUsuario() == TipoUsuario.EMPLEADO) {
-            // Verificar si es un EmpleadoDto
-            if (!(createRoleRequest instanceof EmpleadoDto)) {
-                throw new IllegalArgumentException("Se esperaba un EmpleadoDto");
-            }
+        switch (rolNombre) {
+            case "ROLE_ADMIN":
+            case "ROLE_TERAPEUTA":
+                if (!(usuarioDto instanceof EmpleadoDto empleadoDto)) {
+                    throw new IllegalArgumentException("Se esperaba un EmpleadoDto para el rol " + rolNombre);
+                }
+                Empleado empleado = new Empleado();
+                empleado.setEspecialidad(empleadoDto.getEspecialidad());
+                empleado.setEstadoEmpleado(empleadoDto.getEstadoEmpleado());
+                empleado.setTipoUsuario(TipoUsuario.EMPLEADO); // <- IMPORTANTE
+                userEntity = empleado;
+                break;
 
-            EmpleadoDto empleadoDto = (EmpleadoDto) createRoleRequest;
-            com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado empleado = new com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado();
-            empleado.setTipoEmpleado(empleadoDto.getTipoEmpleado()); // Tipo de empleado (ADMIN, TERAPEUTA)
-            empleado.setEspecialidad(empleadoDto.getEspecialidad()); // Opcional, si es terapeuta
-            empleado.setEstadoEmpleado(empleadoDto.getEstadoEmpleado()); // Estado del empleado, si es necesario
+            case "ROLE_CLIENTE":
+                if (!(usuarioDto instanceof ClienteDto clienteDto)) {
+                    throw new IllegalArgumentException("Se esperaba un ClienteDto para el rol " + rolNombre);
+                }
+                Cliente cliente = new Cliente();
+                cliente.setDireccion(clienteDto.getDireccion());
+                cliente.setTelefono(clienteDto.getTelefono());
+                cliente.setEstadoCliente(clienteDto.getEstado());
+                cliente.setTipoUsuario(TipoUsuario.CLIENTE); // <- IMPORTANTE
+                userEntity = cliente;
+                break;
 
-            userEntity = empleado;
-        } else {
-            // Si no es un empleado, crear un usuario común
-            userEntity = new Usuario();
+            default:
+                userEntity = new Usuario(); // Usuario genérico, por si acaso
+                break;
         }
 
-        // Asignar los valores comunes a ambos tipos
-        userEntity.setName(createRoleRequest.getName());
-        userEntity.setLastname(createRoleRequest.getLastname());
-        userEntity.setDni(createRoleRequest.getDni());
+        // Asignar atributos comunes
+        userEntity.setName(usuarioDto.getName());
+        userEntity.setLastname(usuarioDto.getLastname());
+        userEntity.setDni(usuarioDto.getDni());
         userEntity.setUsername(username);
         userEntity.setPassword(password);
         userEntity.setCreationDate(LocalDateTime.now());
-        userEntity.setTipoUsuario(createRoleRequest.getTipoUsuario());
-        userEntity.setRol(roleEntityList.iterator().next());
+        userEntity.setRol(rolAsignado);
 
-        // Guardar el usuario o empleado en la base de datos
+        // Log para depurar el usuario que se va a guardar
+        System.out.println("Usuario a guardar: " + userEntity);
+
+        // Guardar el usuario en la base de datos
         Usuario userSaved = usuarioRespository.save(userEntity);
+        System.out.println("Usuario guardado: " + userSaved.getIdUsuario());
 
-        // Autenticación y token
-        ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + userSaved.getRol().getName()));
-
+        // Autenticación manual + token
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority(userSaved.getRol().getName())
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(userSaved, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        // Crear el token JWT
         String accessToken = jwtUtils.createToken(authentication);
         List<String> rolesList = List.of(userSaved.getRol().getName());
 
-        return new AuthResponse(username, "User created successfully", rolesList, accessToken, true);
+        // Respuesta de éxito
+        return new AuthResponse(username, "Usuario creado exitosamente", rolesList, accessToken, true);
     }
+
+
+    
+
 
     
     public AuthResponse loginUser(AuthLoginRequest authLoginRequest) {

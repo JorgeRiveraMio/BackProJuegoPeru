@@ -2,7 +2,6 @@ package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -20,8 +19,4 @@ public class Rol {
     public Rol(String name) {
         this.name = name;
     }
-
-    //  tener acceso a los usuarios con este rol
-    // @OneToMany(mappedBy = "rol")
-    // private List<Usuario> usuarios;
 }

@@ -1,6 +1,8 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Cliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
@@ -13,13 +15,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -31,9 +29,6 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticateService authenticate;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserDetailsServiceImpl userDetailService;
@@ -52,52 +47,116 @@ public class AuthenticationController {
 
     private final Map<String, UsuarioDto> pendingClients = new HashMap<>(); // Email -> Cliente
 
-    // Enviar código de verificación al correo
     @PostMapping("/enviarCodigo")
     public ResponseEntity<Object> enviarCodigo(@RequestBody UsuarioDto usuario) {
 
-        Optional<Usuario> usuarioDaoOptional = usuarioService.obtenerUsuario(usuario.getUsername());
-        if(usuarioDaoOptional.isPresent()) {
+        // Validar que el correo no esté vacío
+        if (usuario.getUsername() == null || usuario.getUsername().isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "El correo electrónico no puede estar vacío.");
+            return ResponseEntity.badRequest().body(response);
+        }
 
+        // Validar formato de correo electrónico
+        if (!usuario.getUsername().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "El correo electrónico no tiene un formato válido.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        // Verificar si el correo ya está registrado
+        Optional<Usuario> usuarioDaoOptional = usuarioService.obtenerUsuario(usuario.getUsername());
+        if (usuarioDaoOptional.isPresent()) {
             Map<String, String> response = new HashMap<>();
             response.put("message", "El correo ya está registrado.");
             return ResponseEntity.badRequest().body(response);
         }
-        // Enviar el código al correo del cliente
+
+        // Enviar el código de verificación al correo del usuario
         String code = authenticate.sendMessageUser(usuario.getUsername());
 
         // Guardar el correo y el código temporalmente
         verificationCodes.put(usuario.getUsername(), code);
-        pendingClients.put(usuario.getUsername(), usuario);
 
+        // Depuración: Mostrar los detalles del usuario (incluido el rol)
+        if (usuario.getRol() != null) {
+            System.out.println("Rol asignado al usuario: " + usuario.getRol().getName());
+        } else {
+            System.out.println("El usuario no tiene rol asignado.");
+        }
+
+            // Verificar si el objeto es un ClienteDto o EmpleadoDto
+        if (usuario instanceof ClienteDto) {
+            ClienteDto clienteDto = (ClienteDto) usuario;
+            clienteDto.setTipoUsuario(TipoUsuario.CLIENTE); // Aseguramos el tipo de usuario
+            pendingClients.put(clienteDto.getUsername(), clienteDto);
+            System.out.println("Se guardó un Cliente: " + clienteDto);
+        } else if (usuario instanceof EmpleadoDto) {
+            EmpleadoDto empleadoDto = (EmpleadoDto) usuario;
+            empleadoDto.setTipoUsuario(TipoUsuario.EMPLEADO); // Aseguramos el tipo de usuario
+            pendingClients.put(empleadoDto.getUsername(), empleadoDto);
+            System.out.println("Se guardó un Empleado: " + empleadoDto);
+        } else {
+            System.out.println("Tipo de usuario desconocido: " + usuario.getClass().getName());
+            return ResponseEntity.badRequest().body("Tipo de usuario desconocido.");
+        }
+
+        // Mostrar el contenido de pendingClients para depuración
+        System.out.println("Contenido de pendingClients:");
+        for (Map.Entry<String, UsuarioDto> entry : pendingClients.entrySet()) {
+            System.out.println("Usuario: " + entry.getKey() + " -> " + entry.getValue());
+        }
+
+        // Responder con un mensaje de éxito
         Map<String, String> response = new HashMap<>();
         response.put("message", "Código de verificación enviado al correo.");
         return ResponseEntity.ok(response);
     }
 
-    // Validar el código ingresado por el usuario
+
+
+    
+    // Endpoint para validar el código de verificación (unificado para Cliente y Empleado)
     @PostMapping("/validarCodigo")
     public ResponseEntity<Object> validarCodigo(@RequestBody AuthValidateCodRequest request) {
         String email = request.username();
         String code = request.code();
 
-        // Logs para depuración, esto es solo para ver el la consola los datos (es para pruebas, eliminen si quieren xd )
-        System.out.println("Email recibido: " + email);
-        System.out.println("Código recibido: " + code);
-        System.out.println("Código esperado: " + verificationCodes.get(email));
+        // Validación de que el correo y el código no estén vacíos
+        if (email == null || email.isEmpty() || code == null || code.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "El correo y el código no pueden estar vacíos.");
+            return ResponseEntity.badRequest().body(response);
+        }
 
-        // Verificar si el código ingresado coincide con el que fue enviado
+        // Verificar si el código ingresado coincide con el enviado
         if (verificationCodes.containsKey(email) && verificationCodes.get(email).equals(code)) {
-            // Obtener el cliente temporal
-            UsuarioDto cliente = pendingClients.get(email);
-            // Guardar el cliente en la base de datos
-//            String passwordEncriptado = passwordEncoder.encode(cliente.getPassword());
-            cliente.setPassword(cliente.getPassword());
-            this.userDetailService.createUser(cliente);
-            // Eliminar el cliente y el código del mapa temporal
+            // Obtener el usuario temporal (cliente o empleado)
+            UsuarioDto usuarioDto = pendingClients.get(email);
+
+            if (usuarioDto == null) {
+                System.out.println("No se encontró el usuario temporal para: " + email);
+                return ResponseEntity.badRequest().body("Usuario no encontrado.");
+            }
+
+            // Verificar el tipo de usuario (Cliente o Empleado) con base en el TipoUsuario
+            if (usuarioDto.getTipoUsuario() == TipoUsuario.CLIENTE) {
+                ClienteDto cliente = (ClienteDto) usuarioDto;
+                cliente.setPassword(cliente.getPassword()); // Encriptar la contraseña
+                this.userDetailService.createUser(cliente);
+            } else if (usuarioDto.getTipoUsuario() == TipoUsuario.EMPLEADO) {
+                EmpleadoDto empleado = (EmpleadoDto) usuarioDto;
+                empleado.setPassword(empleado.getPassword()); // Encriptar la contraseña
+                this.userDetailService.createUser(empleado);
+            } else {
+                return ResponseEntity.badRequest().body("Tipo de usuario desconocido.");
+            }
+
+            // Eliminar el código y el usuario temporal
             verificationCodes.remove(email);
             pendingClients.remove(email);
 
+            // Respuesta de éxito
             Map<String, String> response = new HashMap<>();
             response.put("message", "Código validado. Usuario registrado exitosamente.");
             return ResponseEntity.ok(response);
@@ -108,50 +167,51 @@ public class AuthenticationController {
         }
     }
 
-    @PostMapping("/enviarCodigoEmpleado")
-    public ResponseEntity<Object> enviarCodigoEmpleado(@RequestBody EmpleadoDto empleado) {
-        Optional<Usuario> usuarioDaoOptional = usuarioService.obtenerUsuario(empleado.getUsername());
-        if(usuarioDaoOptional.isPresent()) {
+    @PostMapping("/completarPerfil")
+    public ResponseEntity<Object> completarPerfil(@RequestBody ClienteDto clienteDto) {
+    
+        // Validación: Verificar que el usuario existe
+        Optional<Usuario> usuarioExistenteOptional = usuarioService.obtenerUsuario(clienteDto.getUsername());
+        if (usuarioExistenteOptional.isEmpty()) {
             Map<String, String> response = new HashMap<>();
-            response.put("message", "El correo ya está registrado.");
+            response.put("message", "El usuario no existe.");
             return ResponseEntity.badRequest().body(response);
         }
-
-        // Enviar el código al correo del empleado
-        String code = authenticate.sendMessageUser(empleado.getUsername());
-
-        // Guardar el correo y el código temporalmente
-        verificationCodes.put(empleado.getUsername(), code);
-        pendingClients.put(empleado.getUsername(), empleado);
-
+    
+        Usuario usuarioExistente = usuarioExistenteOptional.get();
+    
+        // Verificamos si el usuario es un ClienteDto
+        if (!(usuarioExistente instanceof Cliente)) {
+            return ResponseEntity.badRequest().body("Este endpoint es solo para clientes.");
+        }
+    
+        Cliente clienteExistente = (Cliente) usuarioExistente;
+    
+        // Validar los campos obligatorios del cliente
+        if (clienteDto.getTelefono() == null || clienteDto.getTelefono().isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "El teléfono es obligatorio para completar el perfil.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        if (clienteDto.getDireccion() == null || clienteDto.getDireccion().isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "La dirección es obligatoria para completar el perfil.");
+            return ResponseEntity.badRequest().body(response);
+        }
+    
+        clienteExistente.setDireccion(clienteDto.getDireccion());
+        clienteExistente.setTelefono(clienteDto.getTelefono());
+    
+        usuarioService.actualizarUsuario(clienteExistente);
+    
+        // Respuesta de éxito
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Código de verificación enviado al correo.");
+        response.put("message", "Perfil completado y actualizado exitosamente.");
         return ResponseEntity.ok(response);
     }
+    
 
-    @PostMapping("/validarCodigoEmpleado")
-    public ResponseEntity<Object> validarCodigoEmpleado(@RequestBody AuthValidateCodRequest request) {
-        String email = request.username();
-        String code = request.code();
 
-        if (verificationCodes.containsKey(email) && verificationCodes.get(email).equals(code)) {
-            EmpleadoDto empleado = (EmpleadoDto) pendingClients.get(email);
-            empleado.setPassword(empleado.getPassword()); // No olvidar encriptar la contraseña antes de guardarla
-            this.userDetailService.createUser(empleado);
-
-            // Eliminar el cliente y el código del mapa temporal
-            verificationCodes.remove(email);
-            pendingClients.remove(email);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Código validado. Empleado registrado exitosamente.");
-            return ResponseEntity.ok(response);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Código de verificación incorrecto.");
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
 
     @GetMapping("/actual-usuario")
     public ResponseEntity<?> obtenerUsuarioActual(Principal principal) {
@@ -160,47 +220,46 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body("Usuario no encontrado");
         }
         Usuario usuario = usuarioOptional.get();
-        UsuarioDto usuarioDto = new UsuarioDto();
-        usuarioDto.setUsername(usuario.getUsername());
-        usuarioDto.setName(usuario.getName());
-        usuarioDto.setLastname(usuario.getLastname());
-        usuarioDto.setDni(usuario.getDni());
-        usuarioDto.setTipoUsuario(usuario.getTipoUsuario());
-        usuarioDto.setCreationDate(usuario.getCreationDate());
-        usuarioDto.setRol(List.of(new RolDto(usuario.getRol().getName()))); 
-        return ResponseEntity.ok(usuarioDto);
-    }
-
-    // Endpoint separado para obtener un Empleado
-    @GetMapping("/actual-empleado")
-    public ResponseEntity<?> obtenerEmpleadoActual(Principal principal) {
-        Optional<Usuario> usuarioOptional = usuarioService.obtenerUsuario(principal.getName());
-        if (usuarioOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("Empleado no encontrado");
+        
+        // Si el usuario es de tipo Cliente
+        if (usuario instanceof Cliente) {
+            ClienteDto clienteDto = new ClienteDto();
+            clienteDto.setUsername(usuario.getUsername());
+            clienteDto.setName(usuario.getName());
+            clienteDto.setLastname(usuario.getLastname());
+            clienteDto.setDni(usuario.getDni());
+            clienteDto.setCreationDate(usuario.getCreationDate());
+            clienteDto.setRol(new RolDto(usuario.getRol().getName()));
+            clienteDto.setDireccion(((Cliente) usuario).getDireccion());
+            clienteDto.setTelefono(((Cliente) usuario).getTelefono());
+            clienteDto.setEstado(((Cliente) usuario).getEstadoCliente());
+            
+            return ResponseEntity.ok(clienteDto);
         }
-        Usuario usuario = usuarioOptional.get();
-
-        // Verificar si es un Empleado
-        if (usuario.getTipoUsuario() == TipoUsuario.EMPLEADO) {
+        
+        // Si el usuario es de tipo Empleado
+        if (usuario instanceof Empleado) {
             EmpleadoDto empleadoDto = new EmpleadoDto();
             empleadoDto.setUsername(usuario.getUsername());
             empleadoDto.setName(usuario.getName());
             empleadoDto.setLastname(usuario.getLastname());
             empleadoDto.setDni(usuario.getDni());
-            empleadoDto.setTipoUsuario(usuario.getTipoUsuario());
             empleadoDto.setCreationDate(usuario.getCreationDate());
-            empleadoDto.setRol(List.of(new RolDto(usuario.getRol().getName())));
-
-            com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado empleado = (com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado) usuario;
-            empleadoDto.setTipoEmpleado(empleado.getTipoEmpleado());
+            empleadoDto.setRol(new RolDto(usuario.getRol().getName()));
+            
+            Empleado empleado = (Empleado) usuario;
             empleadoDto.setEspecialidad(empleado.getEspecialidad());
             empleadoDto.setEstadoEmpleado(empleado.getEstadoEmpleado());
-
+            
             return ResponseEntity.ok(empleadoDto);
-        } else {
-            return ResponseEntity.badRequest().body("El usuario no es un empleado");
         }
+
+        // Si no es ni Cliente ni Empleado
+        return ResponseEntity.badRequest().body("El usuario no es ni un Cliente ni un Empleado");
     }
+
+
+
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam String username) {

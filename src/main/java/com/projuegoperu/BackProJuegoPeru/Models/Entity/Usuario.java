@@ -1,26 +1,43 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "usuario")
-@PrimaryKeyJoinColumn(name = "idPersona") // Correcto para herencia JOINED
 @Entity
-public class Usuario extends Persona implements UserDetails {
+@Table(name = "usuario")
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Usuario implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int idUsuario;
+
+    @NotBlank(message = "El name no puede estar vacio")
+    private String name;
+
+    @NotBlank(message = "El lastname no puede estar vacio")
+    private String lastname;
+
+    @NotBlank(message = "El DNI no puede estar vacio")
+    @Pattern(regexp = "\\d{8}", message = "El DNI debe tener 8 dígitos")
+    private String dni;
 
     @Column(name = "username")
     private String username;
@@ -31,9 +48,9 @@ public class Usuario extends Persona implements UserDetails {
     @Column(name = "creationDate")
     private LocalDateTime creationDate;
 
+    @Enumerated(EnumType.STRING) // <-- esto
     @Column(name = "tipo_usuario")
-    @Enumerated(EnumType.STRING)
-    private TipoUsuario tipoUsuario; // EMPLEADO o CLIENTE
+    private TipoUsuario tipoUsuario;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rol_id", nullable = false)
@@ -69,3 +86,4 @@ public class Usuario extends Persona implements UserDetails {
         return UserDetails.super.isEnabled();
     }
 }
+
