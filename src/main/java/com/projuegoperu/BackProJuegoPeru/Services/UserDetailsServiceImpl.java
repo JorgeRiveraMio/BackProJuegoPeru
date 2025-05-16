@@ -1,7 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
 
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Cliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
@@ -107,12 +107,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 if (!(usuarioDto instanceof ClienteDto clienteDto)) {
                     throw new IllegalArgumentException("Se esperaba un ClienteDto para el rol " + rolNombre);
                 }
-                Cliente cliente = new Cliente();
-                cliente.setDireccion(clienteDto.getDireccion());
-                cliente.setTelefono(clienteDto.getTelefono());
-                cliente.setEstadoCliente(clienteDto.getEstado());
-                cliente.setTipoUsuario(TipoUsuario.CLIENTE); // <- IMPORTANTE
-                userEntity = cliente;
+                Tutor tutor = new Tutor();
+                tutor.setDireccion(clienteDto.getDireccion());
+                tutor.setTelefono(clienteDto.getTelefono());
+                tutor.setEstadoCliente(clienteDto.getEstado());
+                tutor.setTipoUsuario(TipoUsuario.CLIENTE); // <- IMPORTANTE
+                userEntity = tutor;
                 break;
 
             default:

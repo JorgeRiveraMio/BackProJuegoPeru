@@ -44,6 +44,7 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.GET, "/consultar-dni").permitAll();
                     http.requestMatchers(HttpMethod.POST,  "/security/**").permitAll();
                     http.requestMatchers(HttpMethod.GET,  "/security/**").permitAll();
+                    http.requestMatchers(  "/paciente/**").permitAll();
                     // EndPoints Privados
                     http.requestMatchers(HttpMethod.GET, "/auth/hello-secured1").hasAuthority("cliente");
                     http.requestMatchers(HttpMethod.GET, "/auth/hello-secured2").hasAuthority("admin");

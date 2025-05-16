@@ -17,9 +17,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cliente")
+@Table(name = "tutor")
 @PrimaryKeyJoinColumn(name = "idUsuario") 
-public class Cliente extends Usuario {
+public class Tutor extends Usuario {
 
     @Column(name = "direccion")
     private String direccion; 

@@ -1,7 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Cliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
@@ -181,11 +181,11 @@ public class AuthenticationController {
         Usuario usuarioExistente = usuarioExistenteOptional.get();
     
         // Verificamos si el usuario es un ClienteDto
-        if (!(usuarioExistente instanceof Cliente)) {
+        if (!(usuarioExistente instanceof Tutor)) {
             return ResponseEntity.badRequest().body("Este endpoint es solo para clientes.");
         }
     
-        Cliente clienteExistente = (Cliente) usuarioExistente;
+        Tutor tutorExistente = (Tutor) usuarioExistente;
     
         // Validar los campos obligatorios del cliente
         if (clienteDto.getTelefono() == null || clienteDto.getTelefono().isEmpty()) {
@@ -199,10 +199,10 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body(response);
         }
     
-        clienteExistente.setDireccion(clienteDto.getDireccion());
-        clienteExistente.setTelefono(clienteDto.getTelefono());
+        tutorExistente.setDireccion(clienteDto.getDireccion());
+        tutorExistente.setTelefono(clienteDto.getTelefono());
     
-        usuarioService.actualizarUsuario(clienteExistente);
+        usuarioService.actualizarUsuario(tutorExistente);
     
         // Respuesta de éxito
         Map<String, String> response = new HashMap<>();
@@ -222,7 +222,7 @@ public class AuthenticationController {
         Usuario usuario = usuarioOptional.get();
         
         // Si el usuario es de tipo Cliente
-        if (usuario instanceof Cliente) {
+        if (usuario instanceof Tutor) {
             ClienteDto clienteDto = new ClienteDto();
             clienteDto.setUsername(usuario.getUsername());
             clienteDto.setName(usuario.getName());
@@ -230,9 +230,9 @@ public class AuthenticationController {
             clienteDto.setDni(usuario.getDni());
             clienteDto.setCreationDate(usuario.getCreationDate());
             clienteDto.setRol(new RolDto(usuario.getRol().getName()));
-            clienteDto.setDireccion(((Cliente) usuario).getDireccion());
-            clienteDto.setTelefono(((Cliente) usuario).getTelefono());
-            clienteDto.setEstado(((Cliente) usuario).getEstadoCliente());
+            clienteDto.setDireccion(((Tutor) usuario).getDireccion());
+            clienteDto.setTelefono(((Tutor) usuario).getTelefono());
+            clienteDto.setEstado(((Tutor) usuario).getEstadoCliente());
             
             return ResponseEntity.ok(clienteDto);
         }

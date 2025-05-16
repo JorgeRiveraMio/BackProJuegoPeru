@@ -1,6 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Cliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +34,10 @@ public class UsuarioService {
         Usuario usuarioExistente = usuarioRespository.findById(usuario.getIdUsuario())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuario.getIdUsuario()));
         
-        if (usuario instanceof Cliente) {
-            Cliente clienteExistente = (Cliente) usuarioExistente;
-            clienteExistente.setDireccion(((Cliente) usuario).getDireccion());
-            clienteExistente.setTelefono(((Cliente) usuario).getTelefono());
+        if (usuario instanceof Tutor) {
+            Tutor tutorExistente = (Tutor) usuarioExistente;
+            tutorExistente.setDireccion(((Tutor) usuario).getDireccion());
+            tutorExistente.setTelefono(((Tutor) usuario).getTelefono());
         }
         return usuarioRespository.save(usuarioExistente);
     }
