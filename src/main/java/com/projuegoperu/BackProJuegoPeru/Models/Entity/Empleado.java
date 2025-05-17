@@ -17,6 +17,7 @@ import lombok.Setter;
 public class Empleado extends Usuario {
 
 
+
     @Column(name = "especialidad")
     private String especialidad; // Opcional, si es TERAPEUTA
 
