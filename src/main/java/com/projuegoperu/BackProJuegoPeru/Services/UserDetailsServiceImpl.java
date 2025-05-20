@@ -153,9 +153,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 
     
-
-
-    
     public AuthResponse loginUser(AuthLoginRequest authLoginRequest) {
 
         String username = authLoginRequest.username();

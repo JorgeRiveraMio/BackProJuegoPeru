@@ -10,6 +10,7 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -28,7 +29,9 @@ public class JwtUtils {
     public String createToken(Authentication authentication) {
         Algorithm algorithm = Algorithm.HMAC256(this.privateKey);
 
-        String username = authentication.getPrincipal().toString();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername(); // ✅ Solo "wolfger733@gmail.com"
+
         //revisar
         String authorities = authentication.getAuthorities()
                 .stream()
