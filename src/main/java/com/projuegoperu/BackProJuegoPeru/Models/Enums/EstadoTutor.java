@@ -1,6 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Enums;
 
-public enum EstadoCliente {
+public enum EstadoTutor {
     ACTIVO,
     INACTIVO
 }

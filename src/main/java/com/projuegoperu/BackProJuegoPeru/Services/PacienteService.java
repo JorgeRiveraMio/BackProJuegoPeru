@@ -5,6 +5,7 @@ import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.TutorRepository;
+import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,9 @@ import java.util.Optional;
 public class PacienteService {
     @Autowired
     private PacienteRepository pacienteRepository;
+
+    @Autowired
+    private UsuarioRespository usuarioRespository;
 
     @Autowired
     private TutorRepository tutorRepository;
@@ -28,8 +32,11 @@ public class PacienteService {
         int tutorId = u.getTutor().getIdUsuario();  // suponiendo que el paciente tiene un tutor con id asignado
         Tutor tutor = tutorRepository.findById(tutorId)
                 .orElseThrow(() -> new RuntimeException("Tutor no encontrado con id: " + tutorId));
+        // En el servicio del paciente
+        if (pacienteRepository.existsByDni(u.getDni()) || usuarioRespository.existsByDni(u.getDni())) {
+            throw new RuntimeException("El DNI ya está registrado en otra entidad");
+        }
 
-        // Asignar el tutor persistido al paciente
         u.setTutor(tutor);
 
         // Guardar el paciente
@@ -45,8 +52,11 @@ public class PacienteService {
     public Paciente ActualizarUsuario(Paciente usu) {
         Paciente usuarioExistente = pacienteRepository.findByDni(usu.getDni())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado con su DNI: " + usu.getDni()));
-
-
+        int tutorId = usu.getTutor().getIdUsuario();  // suponiendo que el paciente tiene un tutor con id asignado
+        Tutor tutor = tutorRepository.findById(tutorId)
+                .orElseThrow(() -> new RuntimeException("Tutor no encontrado con id: " + tutorId));
+        // En el servicio del paciente
+        usu.setTutor(tutor);
         return pacienteRepository.save(usuarioExistente);
     }
     public void Eliminar(int id) {

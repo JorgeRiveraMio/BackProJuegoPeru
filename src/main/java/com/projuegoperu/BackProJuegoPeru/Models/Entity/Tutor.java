@@ -1,6 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoCliente;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoTutor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,6 +29,6 @@ public class Tutor extends Usuario {
     
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private EstadoCliente estadoCliente; //ACTIVO, INACTIVO
+    private EstadoTutor estadoTutor; //ACTIVO, INACTIVO
 
 }

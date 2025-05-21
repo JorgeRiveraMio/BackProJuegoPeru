@@ -1,7 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Models.DTO;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,18 +9,12 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tipoUsuario")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = ClienteDto.class, name = "CLIENTE"),
-    @JsonSubTypes.Type(value = EmpleadoDto.class, name = "EMPLEADO")
-})
 public class UsuarioDto {
 
     @NotBlank(message = "El name no puede estar vacío")
@@ -40,12 +33,9 @@ public class UsuarioDto {
 
     private String password;
 
-    private LocalDateTime creationDate;
+   private LocalDateTime creationDate;
 
-    private TipoUsuario tipoUsuario; 
-
-    @NotEmpty(message = "Debe asignar al menos un rol")
-    private RolDto rol;
+    private int idRol;
 
     
 

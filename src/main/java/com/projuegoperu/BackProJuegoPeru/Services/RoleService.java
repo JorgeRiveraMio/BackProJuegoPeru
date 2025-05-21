@@ -20,7 +20,7 @@ public class RoleService {
     @PostConstruct
     public void init() {
         // Lista de roles que quieres verificar
-        List<String> roleNames = Arrays.asList("ROLE_CLIENTE", "ROLE_ADMIN", "ROLE_TERAPEUTA");
+        List<String> roleNames = Arrays.asList("ROLE_TUTOR", "ROLE_ADMIN", "ROLE_TERAPEUTA");
 
         // Verificar si los roles existen uno a uno
         for (String roleName : roleNames) {

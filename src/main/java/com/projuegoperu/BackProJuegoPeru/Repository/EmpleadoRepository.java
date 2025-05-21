@@ -13,10 +13,7 @@ import java.util.Optional;
 public interface EmpleadoRepository extends JpaRepository<Empleado, Integer> {
     Optional<Empleado> findByDni(String dni);
 
-    // En EmpleadoRepository.java
 
-//    @Query("SELECT e FROM Empleado e WHERE e.rol = :rol")
-//    List<Empleado> findByRol(@Param("rol") String rol);
     @Query("SELECT e FROM Empleado e WHERE e.rol.name = :nombreRol")
     List<Empleado> findByRolNombre(@Param("nombreRol") String nombreRol);
 

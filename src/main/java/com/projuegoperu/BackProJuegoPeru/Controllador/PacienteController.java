@@ -63,7 +63,7 @@ public class PacienteController {
         paciente.setGradoEscolar(pacienteDetalles.getGradoEscolar());
         paciente.setTutor(pacienteDetalles.getTutor()); // solo si ya está registrado
 
-        Paciente actualizado = pacienteService.Guardar(paciente);
+        Paciente actualizado = pacienteService.ActualizarUsuario(paciente);
 
         return ResponseEntity.ok(actualizado);
     }

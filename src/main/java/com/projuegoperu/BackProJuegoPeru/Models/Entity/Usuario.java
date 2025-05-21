@@ -35,6 +35,7 @@ public class Usuario implements UserDetails {
     @NotBlank(message = "El lastname no puede estar vacio")
     private String lastname;
 
+    @Column(unique = true)
     @NotBlank(message = "El DNI no puede estar vacio")
     @Pattern(regexp = "\\d{8}", message = "El DNI debe tener 8 dígitos")
     private String dni;
@@ -47,10 +48,6 @@ public class Usuario implements UserDetails {
 
     @Column(name = "creationDate")
     private LocalDateTime creationDate;
-
-    @Enumerated(EnumType.STRING) // <-- esto
-    @Column(name = "tipo_usuario")
-    private TipoUsuario tipoUsuario;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rol_id", nullable = false)

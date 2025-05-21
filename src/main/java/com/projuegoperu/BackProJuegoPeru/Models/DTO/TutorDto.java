@@ -1,7 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Models.DTO;
 
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoCliente;
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoTutor;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,16 +11,16 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 
-public class ClienteDto extends UsuarioDto {
+public class TutorDto extends UsuarioDto {
     
     private String direccion; 
 
     private String telefono; 
 
     @NotNull(message = "El estado del cliente es obligatorio")
-    private EstadoCliente estado;
+    private EstadoTutor estado;
     
-    public ClienteDto() {
-        this.setTipoUsuario(TipoUsuario.CLIENTE);
+    public TutorDto() {
+
     }
 }

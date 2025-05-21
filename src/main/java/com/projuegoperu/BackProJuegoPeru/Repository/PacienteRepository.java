@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface PacienteRepository   extends JpaRepository<Paciente, Integer> {
+    boolean existsByDni(String dni);
     Optional<Paciente> findByDni(String dni); // ✅ agrega esto si no existe
 
 

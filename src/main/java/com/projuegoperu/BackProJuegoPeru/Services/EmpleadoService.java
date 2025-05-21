@@ -31,7 +31,7 @@ public class EmpleadoService {
 
     public Empleado Guardar(Empleado u) {
         Rol rol = rolRepository.findById(u.getRol().getId()).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-        if ("ROLE_CLIENTE".equalsIgnoreCase(rol.getName())) {
+        if ("ROLE_TUTOR".equalsIgnoreCase(rol.getName())) {
             throw new RuntimeException("No se puede asignar el rol ROLE_CLIENTE a un empleado.");
         }
         u.setRol(rol);

@@ -1,10 +1,13 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
+import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.EmpleadoService;
 import com.projuegoperu.BackProJuegoPeru.Services.PacienteService;
+import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +25,18 @@ public class EmpleadoController {
     @Autowired
     private EmpleadoService empleadoService;
 
+    @Autowired
+    private UserDetailsServiceImpl userDetailService;
+
+    @Autowired
+    private RolRepository rolRepository;
+
     @PostMapping("/guardar")
-    public ResponseEntity<?> guardar(@RequestBody Empleado empleado) {
+    public ResponseEntity<?> guardar(@RequestBody EmpleadoDto empleado) {
         try {
-            Empleado guardado = empleadoService.Guardar(empleado);
-            return ResponseEntity.ok(guardado);
+
+            userDetailService.createEmpleado(empleado);
+            return ResponseEntity.ok("Se guardo correctamente el empleado");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -62,11 +72,14 @@ public class EmpleadoController {
 
 
     @PutMapping("/actualizarPorId/{id}")
-    public ResponseEntity<Empleado> actualizarPaciente(@PathVariable int id, @RequestBody Empleado detallesEmpleado) {
+    public ResponseEntity<?> actualizarPaciente(@PathVariable int id, @RequestBody EmpleadoDto detallesEmpleado) {
         Optional<Empleado> empleadoExistente = empleadoService.ObtenerEmpleadoID(id);
 
         if (!empleadoExistente.isPresent()) {
-            return ResponseEntity.notFound().build();
+            // Retornar un mensaje personalizado si no se encuentra
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Empleado con ID " + id + " no encontrado");
         }
 
         Empleado empleado = empleadoExistente.get();
@@ -77,8 +90,14 @@ public class EmpleadoController {
         empleado.setDni(detallesEmpleado.getDni());
         empleado.setUsername(detallesEmpleado.getUsername());
         empleado.setPassword(detallesEmpleado.getPassword());
-        empleado.setTipoUsuario(detallesEmpleado.getTipoUsuario());
-        empleado.setRol(detallesEmpleado.getRol());
+        // Si necesitas obtener el Rol a partir del ID (idRol), hazlo aquí
+        Optional<Rol> rol = rolRepository.findById(detallesEmpleado.getIdRol()); // Asegúrate de tener este método en rolService
+        if (rol.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Rol con ID " + id + " no encontrado");
+        }
+        empleado.setRol(rol.get());
 
         // 🔁 Actualizar campos específicos de Empleado
         empleado.setEspecialidad(detallesEmpleado.getEspecialidad());
@@ -88,15 +107,19 @@ public class EmpleadoController {
         return ResponseEntity.ok(actualizado);
     }
 
+
     @DeleteMapping("eliminarEmpleadoId/{id}")
-    public ResponseEntity<Void> eliminarPaciente(@PathVariable int id) {
+    public ResponseEntity<String> eliminarEmpleado(@PathVariable int id) {
         Optional<Empleado> empleado = empleadoService.ObtenerEmpleadoID(id);
 
         if (!empleado.isPresent()) {
-            return ResponseEntity.notFound().build(); // 404 si no existe
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Empleado con ID " + id + " no encontrado.");
         }
 
         empleadoService.Eliminar(empleado.get().getIdUsuario());
-        return ResponseEntity.noContent().build(); // 204 No Content si fue eliminado correctamente
+
+        return ResponseEntity.ok("Empleado eliminado correctamente.");
     }
+
 }

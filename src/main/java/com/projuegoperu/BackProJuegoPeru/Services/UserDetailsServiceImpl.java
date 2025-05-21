@@ -5,12 +5,15 @@ import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoEmpleado;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoTutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthLoginRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthResponse;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.ClienteDto;
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.TutorDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
+import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.UsuarioRespository;
 import com.projuegoperu.BackProJuegoPeru.Utils.JwtUtils;
@@ -46,6 +49,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UsuarioRespository usuarioRespository;
 
+    @Autowired
+    private PacienteRepository pacienteRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
@@ -78,40 +84,34 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new IllegalArgumentException("El username ya está registrado.");
         }
 
-        // Obtener el nombre del rol directamente desde el DTO
-        String rolNombre = usuarioDto.getRol().getName();
+        if (pacienteRepository.existsByDni(usuarioDto.getDni()) || usuarioRespository.existsByDni(usuarioDto.getDni())) {
+            throw new RuntimeException("El DNI ya está registrado en otra entidad");
+        }
 
+
+        // Obtener el nombre del rol directamente desde el DTO
+        int idRol = usuarioDto.getIdRol();
+        System.out.println("ID del rol recibido: " + idRol);
         // Buscar el rol existente en la base de datos
-        Rol rolAsignado = rolRepository.findByName(rolNombre)
-                .orElseThrow(() -> new IllegalArgumentException("El rol especificado no existe."));
+        Rol rolAsignado = rolRepository.findById(idRol)
+                .orElseThrow(() -> new IllegalArgumentException("El rol especificado no existe.Id : " + idRol));
 
         // Log para depurar el rol asignado
         System.out.println("Rol asignado: " + rolAsignado.getName());
-
         Usuario userEntity;
-
-        switch (rolNombre) {
-            case "ROLE_ADMIN":
-            case "ROLE_TERAPEUTA":
-                if (!(usuarioDto instanceof EmpleadoDto empleadoDto)) {
-                    throw new IllegalArgumentException("Se esperaba un EmpleadoDto para el rol " + rolNombre);
-                }
-                Empleado empleado = new Empleado();
-                empleado.setEspecialidad(empleadoDto.getEspecialidad());
-                empleado.setEstadoEmpleado(empleadoDto.getEstadoEmpleado());
-                empleado.setTipoUsuario(TipoUsuario.EMPLEADO); // <- IMPORTANTE
-                userEntity = empleado;
-                break;
-
-            case "ROLE_CLIENTE":
-                if (!(usuarioDto instanceof ClienteDto clienteDto)) {
-                    throw new IllegalArgumentException("Se esperaba un ClienteDto para el rol " + rolNombre);
-                }
+        switch (rolAsignado.getName()) {
+            case "ROLE_TUTOR":
                 Tutor tutor = new Tutor();
-                tutor.setDireccion(clienteDto.getDireccion());
-                tutor.setTelefono(clienteDto.getTelefono());
-                tutor.setEstadoCliente(clienteDto.getEstado());
-                tutor.setTipoUsuario(TipoUsuario.CLIENTE); // <- IMPORTANTE
+                tutor.setName(usuarioDto.getName());
+                tutor.setLastname(usuarioDto.getLastname());
+                tutor.setDni(usuarioDto.getDni());
+                tutor.setUsername(usuarioDto.getUsername());
+                tutor.setPassword(usuarioDto.getPassword());
+                tutor.setCreationDate(usuarioDto.getCreationDate());
+                // Estos pueden llegar como null, está bien
+                tutor.setDireccion(null);
+                tutor.setTelefono(null);
+                tutor.setEstadoTutor(EstadoTutor.ACTIVO);
                 userEntity = tutor;
                 break;
 
@@ -150,9 +150,84 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Respuesta de éxito
         return new AuthResponse(username, "Usuario creado exitosamente", rolesList, accessToken, true);
     }
+    @Transactional
+    public AuthResponse createEmpleado(EmpleadoDto empleadoDto) {
+        // Extraer username y codificar la contraseña
+        String username = empleadoDto.getUsername();
+        String password = passwordEncoder.encode(empleadoDto.getPassword());
+        System.out.println("Creando usuario: " + empleadoDto.getUsername());
+
+        // Verificar si ya existe un usuario con el mismo username
+        Optional<Usuario> existingUser = usuarioRespository.findByUsername(username);
+        if (existingUser.isPresent()) {
+            throw new IllegalArgumentException("El username ya está registrado.");
+        }
+        if (pacienteRepository.existsByDni(empleadoDto.getDni()) || usuarioRespository.existsByDni(empleadoDto.getDni())) {
+            throw new RuntimeException("El DNI ya está registrado en otra entidad");
+        }
+        // Obtener el nombre del rol directamente desde el DTO
+        int idRol = empleadoDto.getIdRol();
+        System.out.println("ID del rol recibido: " + idRol);
+        // Buscar el rol existente en la base de datos
+        Rol rolAsignado = rolRepository.findById(idRol)
+                .orElseThrow(() -> new IllegalArgumentException("El rol especificado no existe.Id : " + idRol));
+
+        // Log para depurar el rol asignado
+        System.out.println("Rol asignado: " + rolAsignado.getName());
+        Usuario userEntity;
+        switch (rolAsignado.getName()) {
+            case "ROLE_ADMIN":
+            case "ROLE_TERAPEUTA":
+
+                Empleado empleado = new Empleado();
+                empleado.setLastname(empleadoDto.getLastname());
+                empleado.setDni(empleadoDto.getDni());
+                empleado.setUsername(empleadoDto.getUsername());
+                empleado.setPassword(empleadoDto.getPassword());
+                empleado.setCreationDate(empleadoDto.getCreationDate());
+                empleado.setEspecialidad(empleadoDto.getEspecialidad());
+                empleado.setEstadoEmpleado(EstadoEmpleado.ACTIVO);
+                userEntity = empleado;
+                break;
+
+            default:
+                userEntity = new Usuario(); // Usuario genérico, por si acaso
+                break;
+        }
+
+        // Asignar atributos comunes
+        userEntity.setName(empleadoDto.getName());
+        userEntity.setLastname(empleadoDto.getLastname());
+        userEntity.setDni(empleadoDto.getDni());
+        userEntity.setUsername(username);
+        userEntity.setPassword(password);
+        userEntity.setCreationDate(LocalDateTime.now());
+        userEntity.setRol(rolAsignado);
+
+        // Log para depurar el usuario que se va a guardar
+        System.out.println("Empleado a guardar: " + userEntity);
+
+        // Guardar el usuario en la base de datos
+        Usuario userSaved = usuarioRespository.save(userEntity);
+        System.out.println("Empleado guardado: " + userSaved.getIdUsuario());
+
+        // Autenticación manual + token
+        List<SimpleGrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority(userSaved.getRol().getName())
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userSaved, null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Crear el token JWT
+        String accessToken = jwtUtils.createToken(authentication);
+        List<String> rolesList = List.of(userSaved.getRol().getName());
+
+        // Respuesta de éxito
+        return new AuthResponse(username, "Usuario creado exitosamente", rolesList, accessToken, true);
+    }
 
 
-    
+
     public AuthResponse loginUser(AuthLoginRequest authLoginRequest) {
 
         String username = authLoginRequest.username();

@@ -22,7 +22,7 @@ public class UsuarioService {
         return usuarioRespository.save(u);
     }
 
-    public Usuario Obtener(Integer id) {
+    public Usuario ObtenerPorId(Integer id) {
         return usuarioRespository.findById(id).orElse(null);
     }
 
