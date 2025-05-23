@@ -1,8 +1,11 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.TerapeutaDisponibilidadDto;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.TerapeutaDisponibilidad;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
+import com.projuegoperu.BackProJuegoPeru.Repository.EmpleadoRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.TerapeutaDisponibilidadRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.TutorRepository;
@@ -17,30 +20,40 @@ public class TerapeutaDisponibilidadService {
     @Autowired
     private TerapeutaDisponibilidadRepository terapeutaDisponibilidadRepository;
 
-
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
 
     public List<TerapeutaDisponibilidad> Listar() {
         return terapeutaDisponibilidadRepository.findAll();
     }
 
-    public TerapeutaDisponibilidad Guardar(TerapeutaDisponibilidad u) {
+    public TerapeutaDisponibilidad Guardar(TerapeutaDisponibilidadDto u) {
+        Empleado empleado = empleadoRepository.findById(u.getEmpleadoId()).orElse(null);
+        if (empleado == null) {
+            throw new IllegalArgumentException("El id del empleado no existe");
+        }
+        TerapeutaDisponibilidad terapeutaDisponibilidad = new TerapeutaDisponibilidad();
+        terapeutaDisponibilidad.setDiaSemana(u.getDiaSemana());
+        terapeutaDisponibilidad.setHoraInicio(u.getHoraInicio());
+        terapeutaDisponibilidad.setHoraFin(u.getHoraFin());
+        terapeutaDisponibilidad.setEmpleado(empleado);
 
-        return terapeutaDisponibilidadRepository.save(u);
+        return terapeutaDisponibilidadRepository.save(terapeutaDisponibilidad);
     }
 
 
+    public Optional<TerapeutaDisponibilidad> ObtenerDisponibilidad(int id) {
+        return terapeutaDisponibilidadRepository.findById(id);    }
 
-//    public Optional<Paciente> ObtenerPaciente(String dni) {
-//        return terapeutaDisponibilidadRepository.findByDni(dni);
-//    }
-//
-//    public Paciente ActualizarUsuario(Paciente usu) {
-//        Paciente usuarioExistente = terapeutaDisponibilidadRepository.findByDni(usu.getDni())
-//                .orElseThrow(() -> new RuntimeException("Paciente no encontrado con su DNI: " + usu.getDni()));
-//
-//
-//        return terapeutaDisponibilidadRepository.save(usuarioExistente);
-//    }
+    public List<TerapeutaDisponibilidad> buscarDisponibilidadPorEmpleado(Integer empleadoId) {
+        return terapeutaDisponibilidadRepository.findByEmpleadoIdUsuario(empleadoId);
+    }
+
+
+    public TerapeutaDisponibilidad ActualizarDisponibilidad(TerapeutaDisponibilidad usu) {
+
+        return terapeutaDisponibilidadRepository.save(usu);
+    }
     public void Eliminar(int id) {
         terapeutaDisponibilidadRepository.deleteById(id);
     }
