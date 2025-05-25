@@ -48,6 +48,7 @@ public class SecurityConfig {
                     http.requestMatchers(  "/paciente/**").permitAll();
                     http.requestMatchers(  "/empleado/**").permitAll();
                     http.requestMatchers(  "/disponibilidadTerapeuta/**").permitAll();
+                    http.requestMatchers(  "/InformeEvaluacionInicial/**").permitAll();
                     // EndPoints Privados
                     http .requestMatchers(HttpMethod.GET, "/security/auth/hello-secured1").hasRole("ADMIN");
                     http.anyRequest().denyAll();//revisar
