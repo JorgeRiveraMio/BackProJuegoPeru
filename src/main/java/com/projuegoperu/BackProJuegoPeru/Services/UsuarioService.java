@@ -22,9 +22,10 @@ public class UsuarioService {
         return usuarioRespository.save(u);
     }
 
-    public Usuario ObtenerPorId(Integer id) {
-        return usuarioRespository.findById(id).orElse(null);
+    public Optional<Usuario> ObtenerPorId(Integer id) {
+        return usuarioRespository.findById(id);
     }
+
 
     public Optional<Usuario> obtenerUsuario(String username) {
         return usuarioRespository.findByUsername(username);

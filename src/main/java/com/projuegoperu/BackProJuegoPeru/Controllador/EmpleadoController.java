@@ -2,11 +2,9 @@ package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.EmpleadoService;
-import com.projuegoperu.BackProJuegoPeru.Services.PacienteService;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

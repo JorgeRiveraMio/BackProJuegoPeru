@@ -2,13 +2,9 @@ package com.projuegoperu.BackProJuegoPeru.Services;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.TerapeutaDisponibilidadDto;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.TerapeutaDisponibilidad;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Repository.EmpleadoRepository;
-import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.TerapeutaDisponibilidadRepository;
-import com.projuegoperu.BackProJuegoPeru.Repository.TutorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

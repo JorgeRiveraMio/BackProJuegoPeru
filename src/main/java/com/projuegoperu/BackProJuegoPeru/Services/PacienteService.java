@@ -14,8 +14,6 @@ import java.util.Optional;
 
 @Service
 public class PacienteService {
-    @Autowired
-    private PacienteRepository pacienteRepository;
 
     @Autowired
     private UsuarioRespository usuarioRespository;
@@ -23,6 +21,12 @@ public class PacienteService {
     @Autowired
     private TutorRepository tutorRepository;
 
+    @Autowired
+    private PacienteRepository pacienteRepository;
+
+    public Optional<Paciente> obtenerPorId(Integer id) {
+        return pacienteRepository.findById(id);
+    }
     public List<Paciente> Listar() {
         return pacienteRepository.findAll();
     }
@@ -48,6 +52,8 @@ public class PacienteService {
     public Optional<Paciente> ObtenerPaciente(String dni) {
         return pacienteRepository.findByDni(dni);
     }
+
+    
 
     public Paciente ActualizarUsuario(Paciente usu) {
         Paciente usuarioExistente = pacienteRepository.findByDni(usu.getDni())

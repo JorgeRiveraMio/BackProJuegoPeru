@@ -1,9 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Repository.EmpleadoRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import org.springframework.beans.factory.annotation.Autowired;

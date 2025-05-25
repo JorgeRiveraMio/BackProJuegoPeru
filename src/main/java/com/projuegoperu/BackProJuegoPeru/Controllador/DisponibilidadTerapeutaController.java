@@ -1,9 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.TerapeutaDisponibilidadDto;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.TerapeutaDisponibilidad;
 import com.projuegoperu.BackProJuegoPeru.Services.EmpleadoService;
 import com.projuegoperu.BackProJuegoPeru.Services.TerapeutaDisponibilidadService;
