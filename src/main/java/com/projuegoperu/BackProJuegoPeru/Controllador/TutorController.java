@@ -1,4 +1,8 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
@@ -10,11 +14,20 @@ import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import com.projuegoperu.BackProJuegoPeru.Services.UsuarioService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -149,7 +162,7 @@ public class TutorController {
         if (usuario.getRol().getName().equals("ROLE_TUTOR")) {
 
             TutorDto tutorDto = new TutorDto();
-            
+
             tutorDto.setUsername(usuario.getUsername());
             tutorDto.setName(usuario.getName());
             tutorDto.setLastname(usuario.getLastname());
@@ -266,6 +279,7 @@ public class TutorController {
 
         if (tutorDto.getDireccion() != null && !tutorDto.getDireccion().isBlank()) {
             tutorExistente.setDireccion(tutorDto.getDireccion());
+
         }
 
         // Actualización de campos heredados de Usuario
@@ -289,7 +303,7 @@ public class TutorController {
         response.put("message", "Perfil completado y actualizado exitosamente.");
         return ResponseEntity.ok(response);
     }
-    @GetMapping ("/auth/hello-secured1")
+    @GetMapping("/auth/hello-secured1")
     public String hola() {
 
 

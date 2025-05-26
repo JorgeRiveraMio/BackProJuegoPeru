@@ -10,6 +10,4 @@ import java.util.Optional;
 public interface PacienteRepository   extends JpaRepository<Paciente, Integer> {
     boolean existsByDni(String dni);
     Optional<Paciente> findByDni(String dni); // ✅ agrega esto si no existe
-
-
 }

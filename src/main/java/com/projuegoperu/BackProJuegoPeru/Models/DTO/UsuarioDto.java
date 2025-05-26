@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @NoArgsConstructor
 public class UsuarioDto {
 
-    @NotBlank(message = "El name no puede estar vacío")
+    @NotBlank(message = "El id no puede estar vacío")
     private int idUsuario;
 
     @NotBlank(message = "El name no puede estar vacío")

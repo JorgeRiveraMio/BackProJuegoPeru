@@ -7,11 +7,15 @@ import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.EmpleadoService;
 import com.projuegoperu.BackProJuegoPeru.Services.PacienteService;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
+import com.projuegoperu.BackProJuegoPeru.Repository.RolRepository;
+import com.projuegoperu.BackProJuegoPeru.Services.EmpleadoService;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -90,12 +94,14 @@ public class EmpleadoController {
         empleado.setLastname(detallesEmpleado.getLastname());
         empleado.setDni(detallesEmpleado.getDni());
         empleado.setUsername(detallesEmpleado.getUsername());
+
         if (detallesEmpleado.getPassword() != null && !detallesEmpleado.getPassword().isEmpty()) {
         // Cifrar la contraseña antes de almacenarla
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encryptedPassword = passwordEncoder.encode(detallesEmpleado.getPassword());
         empleado.setPassword(encryptedPassword);
         }
+
         // Si necesitas obtener el Rol a partir del ID (idRol), hazlo aquí
         Optional<Rol> rol = rolRepository.findById(detallesEmpleado.getIdRol()); // Asegúrate de tener este método en rolService
         if (rol.isEmpty()) {

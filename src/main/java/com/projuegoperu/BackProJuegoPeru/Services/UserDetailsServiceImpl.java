@@ -1,16 +1,13 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
-
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Tutor;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Rol;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoEmpleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoTutor;
-import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthLoginRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.AuthResponse;
-import com.projuegoperu.BackProJuegoPeru.Models.DTO.TutorDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.EmpleadoDto;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.UsuarioDto;
 import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
@@ -255,10 +252,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Loguear las contraseñas antes de la comparación
         System.out.println("Contraseña proporcionada: " + password);
         System.out.println("Contraseña almacenada (cifrada): " + userDetails.getPassword());
-
-        if (userDetails == null) {
-            throw new BadCredentialsException(String.format("Invalid username or password"));
-        }
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new BadCredentialsException("Incorrect Password");

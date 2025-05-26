@@ -22,8 +22,8 @@ public class UsuarioService {
         return usuarioRespository.save(u);
     }
 
-    public Usuario ObtenerPorId(Integer id) {
-        return usuarioRespository.findById(id).orElse(null);
+    public Optional<Usuario> ObtenerPorId(Integer id) {
+        return usuarioRespository.findById(id);
     }
 
     public Optional<Usuario> obtenerUsuario(String username) {
@@ -34,7 +34,7 @@ public class UsuarioService {
         Usuario usuarioExistente = usuarioRespository.findById(usuario.getIdUsuario())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuario.getIdUsuario()));
         
-        if (usuario instanceof Tutor) {
+        if(usuario instanceof Tutor) {
             Tutor tutorExistente = (Tutor) usuarioExistente;
             tutorExistente.setDireccion(((Tutor) usuario).getDireccion());
             tutorExistente.setTelefono(((Tutor) usuario).getTelefono());

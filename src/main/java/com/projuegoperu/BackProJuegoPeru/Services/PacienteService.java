@@ -14,14 +14,20 @@ import java.util.Optional;
 
 @Service
 public class PacienteService {
+
     @Autowired
     private PacienteRepository pacienteRepository;
+
 
     @Autowired
     private UsuarioRespository usuarioRespository;
 
     @Autowired
     private TutorRepository tutorRepository;
+
+    public Optional<Paciente> obtenerPorId(Integer id) {
+        return pacienteRepository.findById(id);
+    }
 
     public List<Paciente> Listar() {
         return pacienteRepository.findAll();
