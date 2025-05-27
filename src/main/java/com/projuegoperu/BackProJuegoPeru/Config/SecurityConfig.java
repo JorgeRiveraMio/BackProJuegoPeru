@@ -46,7 +46,7 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.GET,  "/security/**").permitAll();
                     http.requestMatchers(HttpMethod.PUT,  "/security/**").permitAll();
                     http.requestMatchers(  "/paciente/**").permitAll();
-                    http.requestMatchers(  "/empleado/**").permitAll();
+                     http.requestMatchers("/empleado/**").authenticated();
                     http.requestMatchers(  "/disponibilidadTerapeuta/**").permitAll();
                     http.requestMatchers(  "/InformeEvaluacionInicial/**").permitAll();
                     // EndPoints Privados
