@@ -31,4 +31,9 @@ public class TipoSesion {
     @Column(name = "costo", precision = 10, scale = 2, nullable = false)
     private BigDecimal costo;
 
+    public TipoSesion(NombreTipoSesion nombre, String descripcion, BigDecimal costo) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.costo = costo;
+    }
 }
