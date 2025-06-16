@@ -1,6 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Models.Entity;
 
 
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.NombreTipoSesion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,8 +21,9 @@ public class TipoSesion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "nombre", length = 100, nullable = false)
-    private String nombre;
+    private NombreTipoSesion nombre;
 
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;

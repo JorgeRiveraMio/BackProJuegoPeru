@@ -1,20 +1,17 @@
 package com.projuegoperu.BackProJuegoPeru.Services;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.*;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoSesion;
+import com.projuegoperu.BackProJuegoPeru.Repository.*;
 import org.springframework.stereotype.Service;
 
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.SesionDto;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.EvaluacionIngreso;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.Sesion;
-import com.projuegoperu.BackProJuegoPeru.Models.Entity.TerapeutaDisponibilidad;
-import com.projuegoperu.BackProJuegoPeru.Repository.EvaluacionIngresoRepository;
-import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
-import com.projuegoperu.BackProJuegoPeru.Repository.SesionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,73 +19,65 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SesionService {
 
-    private final TerapeutaDisponibilidadService terapeutaDisponibilidadService;
-    private final PacienteRepository pacienteRepository;
     private final SesionRepository sesionRepository;
-    private final EvaluacionIngresoRepository evaluacionIngresoRepository;
+    private final EmpleadoRepository empleadoRepository;
+    private final PacienteRepository pacienteRepository;
+    private final TipoSesionRepository tipoSesionRepository;
 
-    public List<SesionDto> generarSugerencias(Long pacienteId) {
-        Paciente paciente = pacienteRepository.findById(pacienteId.intValue())
-            .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+    public Sesion crearSesion(SesionDto request) {
+        Paciente paciente = pacienteRepository.findById(request.getPacienteId())
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
-        // Buscar la última evaluación
-        List<EvaluacionIngreso> evaluaciones = evaluacionIngresoRepository.findByPacienteId(paciente.getId());
-        EvaluacionIngreso ultimaEvaluacion = evaluaciones.stream()
-            .sorted((a, b) -> b.getFechaCreacion().compareTo(a.getFechaCreacion()))
-            .findFirst()
-            .orElse(null);
+        Empleado terapeuta = empleadoRepository.findById(request.getEmpleadoTerapeutaId())
+                .orElseThrow(() -> new RuntimeException("Terapeuta no encontrado"));
 
-        if (ultimaEvaluacion == null) {
-            throw new RuntimeException("No hay evaluación de ingreso registrada para el paciente");
-        }
 
-        if (ultimaEvaluacion.getRequiereEvaluacion() && ultimaEvaluacion.getFechaEvaluacion() == null) {
-            throw new RuntimeException("El paciente requiere una evaluación previa antes de agendar sesiones");
-        }
+        TipoSesion tipoSesion = tipoSesionRepository.findById(request.getTipoSesionId())
+                .orElseThrow(() -> new RuntimeException("Tipo de sesión no encontrado"));
 
-        int sesionesPlaneadas = (ultimaEvaluacion.getPlanALasSesiones() != null) ? ultimaEvaluacion.getPlanALasSesiones() : Integer.MAX_VALUE;
+        Empleado administrador = empleadoRepository.findById(request.getEmpleadoAdminId())
+                .orElseThrow(() -> new RuntimeException("Administrador no encontrado"));
 
-        List<TerapeutaDisponibilidad> disponibilidades = terapeutaDisponibilidadService.Listar();
-        List<Sesion> sesionesExistentes = sesionRepository.findByPacienteId(paciente.getId());
 
-        List<SesionDto> sugerencias = new ArrayList<>();
-        int sesionesSugeridas = 0;
 
-        for (TerapeutaDisponibilidad disp : disponibilidades) {
-            for (int i = 0; i < 14 && sesionesSugeridas < sesionesPlaneadas; i++) {
-                LocalDate fecha = LocalDate.now().plusDays(i);
-                String diaSemana = fecha.getDayOfWeek().name();
+        // Validar disponibilidad aquí si es necesario
 
-                if (diaSemana.equalsIgnoreCase(disp.getDiaSemana())) {
-                    boolean hayConflicto = sesionesExistentes.stream().anyMatch(sesion ->
-                        sesion.getFechaSesion().equals(fecha) &&
-                        solapaHorario(sesion.getHora(), // Ajusta esto si cambias a inicio/fin
-                                      sesion.getHora().plusMinutes(45),
-                                      disp.getHoraInicio(),
-                                      disp.getHoraFin())
-                    );
+        Sesion sesion = new Sesion();
+        sesion.setPaciente(paciente);
+        sesion.setTerapeuta(terapeuta);
+        sesion.setFechaSesion(request.getFechaSesion());
+        sesion.setHora(request.getHoraInicio());
+        sesion.setTipoSesion(tipoSesion);
+        sesion.setAdministrador(administrador);
+        sesion.setFechaRegistro(LocalDateTime.now()); // O LocalDate.now() si es solo fecha
 
-                    if (!hayConflicto) {
-                        SesionDto dto = new SesionDto();
-                        dto.setPacienteId(pacienteId);
-                        dto.setEmpleadoTerapeutaId((long) disp.getEmpleado().getIdUsuario());
-                        dto.setFechaSesion(fecha);
-                        dto.setHoraInicio(disp.getHoraInicio());
-                        dto.setHoraFin(disp.getHoraFin());
-                        dto.setEstado("sugerida");
-                        dto.setTipoSesionId(1L); // temporal
-                        sugerencias.add(dto);
-                        sesionesSugeridas++;
-                    }
-                }
-            }
-        }
+        sesion.setEstado(EstadoSesion.PROGRAMADA);
 
-        return sugerencias;
+        return sesionRepository.save(sesion);
     }
 
-    private boolean solapaHorario(LocalTime inicio1, LocalTime fin1, LocalTime inicio2, LocalTime fin2) {
-        return !(fin1.isBefore(inicio2) || inicio1.isAfter(fin2));
+    public List<Sesion> listarSesionesPorPaciente(int pacienteId) {
+        return sesionRepository.findByPacienteId(pacienteId);
+    }
+
+    public void cancelarSesion(int id) {
+        Sesion sesion = sesionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sesión no encontrada"));
+
+        if (sesion.getEstado() == EstadoSesion.FINALIZADA) {
+            throw new RuntimeException("No se puede cancelar una sesión finalizada");
+        }
+
+        sesion.setEstado(EstadoSesion.CANCELADA);
+        sesionRepository.save(sesion);
+    }
+
+    public void finalizarSesion(int id) {
+        Sesion sesion = sesionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Sesión no encontrada"));
+
+        sesion.setEstado(EstadoSesion.FINALIZADA);
+        sesionRepository.save(sesion);
     }
     
 }
