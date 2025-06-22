@@ -145,6 +145,7 @@ public class TutorController {
         if (usuario.getRol().getName().equals("ROLE_TUTOR")) {
 
             TutorDto tutorDto = new TutorDto();
+            tutorDto.setIdUsuario(usuario.getIdUsuario());
             tutorDto.setUsername(usuario.getUsername());
             tutorDto.setName(usuario.getName());
             tutorDto.setLastname(usuario.getLastname());

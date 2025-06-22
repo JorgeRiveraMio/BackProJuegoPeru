@@ -13,6 +13,8 @@ import lombok.Setter;
 
 public class TutorDto extends UsuarioDto {
     
+    private int idUsuario;
+    
     private String direccion; 
 
     private String telefono; 

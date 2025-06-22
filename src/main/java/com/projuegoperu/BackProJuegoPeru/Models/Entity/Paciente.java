@@ -49,6 +49,7 @@ public class Paciente {
     private String gradoEscolar;
 
     @ManyToOne
-    @JoinColumn(name = "tutor_id")
+    @JoinColumn(name = "tutor_id", nullable=false)
     private Tutor tutor;
+
 }

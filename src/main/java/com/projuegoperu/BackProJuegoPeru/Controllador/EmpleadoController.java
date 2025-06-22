@@ -32,11 +32,10 @@ public class EmpleadoController {
     @PostMapping("/guardar")
     public ResponseEntity<?> guardar(@RequestBody EmpleadoDto empleado) {
         try {
-
             userDetailService.createEmpleado(empleado);
-            return ResponseEntity.ok("Se guardo correctamente el empleado");
+            return ResponseEntity.ok(Map.of("mensaje", "Se guardó correctamente el empleado"));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

@@ -53,7 +53,9 @@ public class PacienteService {
         return pacienteRepository.findByDni(dni);
     }
 
-    
+    public List<Paciente> obtenerPacientesPorTutorId(Integer tutorId) {
+        return pacienteRepository.findByTutor_IdUsuario(tutorId);
+    }
 
     public Paciente ActualizarUsuario(Paciente usu) {
         Paciente usuarioExistente = pacienteRepository.findByDni(usu.getDni())

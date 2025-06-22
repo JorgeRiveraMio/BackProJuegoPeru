@@ -17,9 +17,15 @@ public class PacienteController {
     private PacienteService pacienteService;
 
     @PostMapping("/guardar")
-    public ResponseEntity<Paciente> guardar(@RequestBody  Paciente paciente) {
+    public ResponseEntity<Paciente> guardar(@RequestBody Paciente paciente) {
+        System.out.println("Tutor recibido: " + paciente.getTutor());
+        System.out.println("ID del tutor: " + paciente.getTutor().getIdUsuario());
+        System.out.println("Nombre del tutor: " + paciente.getTutor().getName());
 
+        // Guardar el paciente utilizando el servicio
         Paciente guardado = pacienteService.Guardar(paciente);
+
+        // Retornar la respuesta con el paciente guardado
         return ResponseEntity.ok(guardado);
     }
 
@@ -80,8 +86,9 @@ public class PacienteController {
         return ResponseEntity.noContent().build(); // 204 No Content si fue eliminado correctamente
     }
 
-
-
-
-
+    @GetMapping("/tutor/{tutorId}")
+    public List<Paciente> obtenerPacientesPorTutor(@PathVariable Integer tutorId) {
+        return pacienteService.obtenerPacientesPorTutorId(tutorId);
+    }
+    
 }
