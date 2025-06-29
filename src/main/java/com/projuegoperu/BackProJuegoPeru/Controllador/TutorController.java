@@ -1,4 +1,8 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.*;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Empleado;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.PasswordResetToken;
@@ -17,6 +21,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,6 +45,9 @@ import java.util.UUID;
 public class TutorController {
     @Autowired
     private AuthenticateService authenticate;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserDetailsServiceImpl userDetailService;
@@ -168,6 +183,7 @@ public class TutorController {
             if (optionalEmp.isPresent()) {
                 Empleado emp = optionalEmp.get();
                 EmpleadoDto empleadoDto = new EmpleadoDto();
+                empleadoDto.setIdUsuario(usuario.getIdUsuario());
                 empleadoDto.setUsername(usuario.getUsername());
                 empleadoDto.setName(usuario.getName());
                 empleadoDto.setLastname(usuario.getLastname());
@@ -257,13 +273,14 @@ public class TutorController {
 
         Tutor tutorExistente = (Tutor) usuarioExistente;
 
-        // Validación de campos obligatorios
-        if (tutorDto.getTelefono() == null || tutorDto.getTelefono().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "El teléfono es obligatorio para completar el perfil."));
+        // Validación de campos actualizar
+        if (tutorDto.getTelefono() != null && !tutorDto.getTelefono().isBlank()) {
+            tutorExistente.setTelefono(tutorDto.getTelefono());
         }
 
-        if (tutorDto.getDireccion() == null || tutorDto.getDireccion().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "La dirección es obligatoria para completar el perfil."));
+        if (tutorDto.getDireccion() != null && !tutorDto.getDireccion().isBlank()) {
+            tutorExistente.setDireccion(tutorDto.getDireccion());
+
         }
 
         // Actualización de campos heredados de Usuario
@@ -271,7 +288,9 @@ public class TutorController {
         tutorExistente.setLastname(tutorDto.getLastname());
         tutorExistente.setDni(tutorDto.getDni());
         tutorExistente.setUsername(tutorDto.getUsername());
-        tutorExistente.setPassword(tutorDto.getPassword());
+        if (tutorDto.getPassword() != null && !tutorDto.getPassword().isBlank()) {
+            tutorExistente.setPassword(passwordEncoder.encode(tutorDto.getPassword()));
+        }
 
         // Actualización de campos propios de Tutor
         tutorExistente.setDireccion(tutorDto.getDireccion());
@@ -285,7 +304,7 @@ public class TutorController {
         response.put("message", "Perfil completado y actualizado exitosamente.");
         return ResponseEntity.ok(response);
     }
-    @GetMapping ("/auth/hello-secured1")
+    @GetMapping("/auth/hello-secured1")
     public String hola() {
 
 

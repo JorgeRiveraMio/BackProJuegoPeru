@@ -1,6 +1,7 @@
 package com.projuegoperu.BackProJuegoPeru.Models.DTO;
 
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoEmpleado;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

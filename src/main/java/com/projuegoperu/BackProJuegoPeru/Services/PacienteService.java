@@ -16,19 +16,24 @@ import java.util.Optional;
 public class PacienteService {
 
     @Autowired
+    private PacienteRepository pacienteRepository;
+
+
+    @Autowired
     private UsuarioRespository usuarioRespository;
 
     @Autowired
     private TutorRepository tutorRepository;
 
-    @Autowired
-    private PacienteRepository pacienteRepository;
-
     public Optional<Paciente> obtenerPorId(Integer id) {
         return pacienteRepository.findById(id);
     }
+
     public List<Paciente> obtenerPacientesConTutor() {
-        return pacienteRepository.findAll();  // Esto obtiene todos los pacientes, y debes asegurarte de que la relación Tutor esté cargada
+        return pacienteRepository.findAll(); } // Esto obtiene todos los pacientes, y debes asegurarte de que la relación Tutor esté cargada
+
+    public List<Paciente> Listar() {
+        return pacienteRepository.findAll();
     }
 
     public Paciente Guardar(Paciente u) {

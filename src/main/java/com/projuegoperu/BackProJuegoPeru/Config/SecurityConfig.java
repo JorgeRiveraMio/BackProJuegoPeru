@@ -46,9 +46,12 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.GET,  "/security/**").permitAll();
                     http.requestMatchers(HttpMethod.PUT,  "/security/**").permitAll();
                     http.requestMatchers(  "/paciente/**").permitAll();
-                    http.requestMatchers(  "/empleado/**").permitAll();
+                     http.requestMatchers("/empleado/**").permitAll();
                     http.requestMatchers(  "/disponibilidadTerapeuta/**").permitAll();
                     http.requestMatchers(  "/InformeEvaluacionInicial/**").permitAll();
+                    http.requestMatchers(  "/recomendaciones/**").permitAll();
+                    http.requestMatchers(  "/tipos-sesion/**").permitAll();
+                    http.requestMatchers(  "/sesiones/**").permitAll();
                     // EndPoints Privados
                     http .requestMatchers(HttpMethod.GET, "/security/auth/hello-secured1").hasRole("ADMIN");
                     http.anyRequest().denyAll();//revisar

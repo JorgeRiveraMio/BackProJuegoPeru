@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.TipoUsuario;
 
 import java.time.LocalDateTime;
 import java.util.Collection;

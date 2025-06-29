@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 
 @Getter
@@ -14,6 +16,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UsuarioDto {
+
+    @NotBlank(message = "El id no puede estar vacío")
+    private int idUsuario;
 
     @NotBlank(message = "El name no puede estar vacío")
     private String name;

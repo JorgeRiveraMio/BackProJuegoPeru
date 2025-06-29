@@ -6,11 +6,11 @@ import java.time.LocalTime;
 
 @Data
 public class SesionDto {
-    private Long pacienteId;
-    private Long empleadoTerapeutaId;
-    private Long tipoSesionId;
+    private int pacienteId;
+    private int empleadoTerapeutaId;
+    private int tipoSesionId;
+    private int empleadoAdminId; // ✅ Agregado
     private LocalDate fechaSesion;
     private LocalTime horaInicio;
-    private LocalTime horaFin;
     private String estado;
 }

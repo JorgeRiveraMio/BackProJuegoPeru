@@ -18,4 +18,5 @@ public interface PacienteRepository   extends JpaRepository<Paciente, Integer> {
     
     @Query("SELECT p FROM Paciente p JOIN FETCH p.tutor")
     List<Paciente> findAllWithTutor();
+
 }

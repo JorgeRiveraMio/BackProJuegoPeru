@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -46,7 +47,7 @@ public class Sesion {
     private LocalTime hora;
 
     @Column(name = "fecha_registro", nullable = false)
-    private String fechaRegistro; // puedes cambiarlo a LocalDateTime si lo prefieres
+    private LocalDateTime fechaRegistro; // puedes cambiarlo a LocalDateTime si lo prefieres
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 50)
