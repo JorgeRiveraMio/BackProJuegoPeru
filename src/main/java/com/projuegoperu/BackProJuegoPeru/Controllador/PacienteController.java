@@ -1,13 +1,20 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
+import com.projuegoperu.BackProJuegoPeru.Models.Entity.Usuario;
 import com.projuegoperu.BackProJuegoPeru.Services.PacienteService;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.projuegoperu.BackProJuegoPeru.Services.UsuarioService;
 
 @RestController
 @RequestMapping("/paciente")
@@ -15,6 +22,9 @@ public class PacienteController {
 
     @Autowired
     private PacienteService pacienteService;
+    
+    @Autowired
+    private UsuarioService usuarioService;
 
     @PostMapping("/guardar")
     public ResponseEntity<Paciente> guardar(@RequestBody Paciente paciente) {
@@ -91,4 +101,13 @@ public class PacienteController {
         return pacienteService.obtenerPacientesPorTutorId(tutorId);
     }
     
+    @GetMapping("/admin/pacientes")
+    public ResponseEntity<List<Paciente>> obtenerTodosLosPacientes(Principal principal) {
+        Optional<Usuario> usuario = usuarioService.obtenerUsuario(principal.getName());
+        if (usuario.isPresent() && usuario.get().getRol().getName().equals("ROLE_ADMIN")) {
+            List<Paciente> pacientes = pacienteService.obtenerPacientesConTutor();
+            return ResponseEntity.ok(pacientes);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ArrayList<>());
+    }
 }

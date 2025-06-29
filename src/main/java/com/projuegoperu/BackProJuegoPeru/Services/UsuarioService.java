@@ -43,5 +43,7 @@ public class UsuarioService {
         return usuarioRespository.save(usuarioExistente);
     }
     
-
+    public List<Usuario> ListarTutores() {
+    return usuarioRespository.findByRolName("ROLE_TUTOR"); // Asegúrate de tener un método en el repositorio que obtenga los tutores
+    }
 }

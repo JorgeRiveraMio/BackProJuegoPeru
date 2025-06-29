@@ -10,7 +10,9 @@ import com.projuegoperu.BackProJuegoPeru.Services.AuthenticateService;
 import com.projuegoperu.BackProJuegoPeru.Services.EmailService;
 import com.projuegoperu.BackProJuegoPeru.Services.UserDetailsServiceImpl;
 import com.projuegoperu.BackProJuegoPeru.Services.UsuarioService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -289,6 +292,37 @@ public class TutorController {
         return "hola admin";
     }
 
+    @GetMapping("/tutores")
+    public ResponseEntity<Object> obtenerTutores() {
+        List<Usuario> tutores = usuarioService.ListarTutores();
+        if (tutores.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "No se encontraron tutores"));
+        }
+        return ResponseEntity.ok(tutores); // Devolver lista de tutores
+    }
 
+    @PostMapping("/registrar-tutor")
+    public ResponseEntity<Object> registrarTutorComoAdmin(@RequestBody UsuarioDto usuarioDto) {
+    // Validaciones básicas
+    if (usuarioDto.getUsername() == null || usuarioDto.getUsername().isEmpty()) {
+        return ResponseEntity.badRequest().body(Map.of("message", "El correo es obligatorio."));
+    }
+
+    if (usuarioService.obtenerUsuario(usuarioDto.getUsername()).isPresent()) {
+        return ResponseEntity.badRequest().body(Map.of("message", "El correo ya está registrado."));
+    }
+
+    // Validar que tenga rol de tutor
+    if (usuarioDto.getIdRol() != 1) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Este endpoint solo es para registrar tutores."));
+    }
+
+    try {
+        userDetailService.createUser(usuarioDto); // reutiliza el método existente
+        return ResponseEntity.ok(Map.of("message", "Tutor registrado correctamente."));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Error al registrar tutor.", "error", e.getMessage()));
+    }
+}
 
 }

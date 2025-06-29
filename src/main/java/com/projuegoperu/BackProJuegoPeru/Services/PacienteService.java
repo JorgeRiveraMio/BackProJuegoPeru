@@ -27,8 +27,8 @@ public class PacienteService {
     public Optional<Paciente> obtenerPorId(Integer id) {
         return pacienteRepository.findById(id);
     }
-    public List<Paciente> Listar() {
-        return pacienteRepository.findAll();
+    public List<Paciente> obtenerPacientesConTutor() {
+        return pacienteRepository.findAll();  // Esto obtiene todos los pacientes, y debes asegurarte de que la relación Tutor esté cargada
     }
 
     public Paciente Guardar(Paciente u) {
