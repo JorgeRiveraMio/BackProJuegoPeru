@@ -32,7 +32,7 @@ public class Sesion {
 
     // Administrador (empleado que agenda la sesión)
     @ManyToOne
-    @JoinColumn(name = "empleado_admin_id", nullable = false)
+    @JoinColumn(name = "empleado_admin_id", nullable = true)
     private Empleado administrador;
 
     // Tipo de sesión

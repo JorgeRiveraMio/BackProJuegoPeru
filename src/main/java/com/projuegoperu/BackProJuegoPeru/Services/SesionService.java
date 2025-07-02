@@ -35,8 +35,11 @@ public class SesionService {
         TipoSesion tipoSesion = tipoSesionRepository.findById(request.getTipoSesionId())
                 .orElseThrow(() -> new RuntimeException("Tipo de sesión no encontrado"));
 
-        Empleado administrador = empleadoRepository.findById(request.getEmpleadoAdminId())
+        Empleado administrador = null;
+        if (request.getEmpleadoAdminId() != null) {
+            administrador = empleadoRepository.findById(request.getEmpleadoAdminId())
                 .orElseThrow(() -> new RuntimeException("Administrador no encontrado"));
+        }
 
 
 
@@ -46,7 +49,7 @@ public class SesionService {
         sesion.setPaciente(paciente);
         sesion.setTerapeuta(terapeuta);
         sesion.setFechaSesion(request.getFechaSesion());
-        sesion.setHora(request.getHoraInicio());
+        sesion.setHora(request.getHora());
         sesion.setTipoSesion(tipoSesion);
         sesion.setAdministrador(administrador);
         sesion.setFechaRegistro(LocalDateTime.now()); // O LocalDate.now() si es solo fecha
@@ -58,6 +61,14 @@ public class SesionService {
 
     public List<Sesion> listarSesionesPorPaciente(int pacienteId) {
         return sesionRepository.findByPacienteId(pacienteId);
+    }
+
+    public List<Sesion> listarTodasLasSesiones() {
+    return sesionRepository.findAll();
+    }
+
+    public List<Sesion> listarSesionesPorTerapeuta(int idUsuario) {
+    return sesionRepository.findByTerapeutaIdUsuario(idUsuario);
     }
 
     public void cancelarSesion(int id) {

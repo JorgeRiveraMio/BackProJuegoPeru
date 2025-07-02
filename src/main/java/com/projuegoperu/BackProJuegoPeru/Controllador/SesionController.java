@@ -27,14 +27,16 @@ public class SesionController {
         return ResponseEntity.ok(sesionService.crearSesion(request));
     }
 
-    @GetMapping()
-    public ResponseEntity<List<Sesion>> listarSesiones(@RequestParam(required = false) Integer pacienteId) {
-        if (pacienteId != null) {
-            return ResponseEntity.ok(sesionService.listarSesionesPorPaciente(pacienteId));
-        }
-        return ResponseEntity.ok(Collections.emptyList());
+    @GetMapping("/todas")
+    public ResponseEntity<List<Sesion>> listarTodasLasSesiones() {
+        return ResponseEntity.ok(sesionService.listarTodasLasSesiones());
     }
 
+    @GetMapping("/terapeuta/{id}")
+    public ResponseEntity<List<Sesion>> listarPorTerapeuta(@PathVariable int id) {
+        List<Sesion> sesiones = sesionService.listarSesionesPorTerapeuta(id);
+        return ResponseEntity.ok(sesiones);
+    }
 
     @PutMapping("/{id}/cancelar")
     public ResponseEntity<Void> cancelarSesion(@PathVariable int id) {
@@ -46,5 +48,11 @@ public class SesionController {
     public ResponseEntity<Void> finalizarSesion(@PathVariable int id) {
         sesionService.finalizarSesion(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/paciente/{id}")
+    public ResponseEntity<List<Sesion>> listarPorPaciente(@PathVariable int id) {
+        List<Sesion> sesiones = sesionService.listarSesionesPorPaciente(id);
+        return ResponseEntity.ok(sesiones);
     }
 }

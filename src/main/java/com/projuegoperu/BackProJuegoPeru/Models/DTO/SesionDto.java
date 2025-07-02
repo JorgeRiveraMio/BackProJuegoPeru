@@ -9,8 +9,8 @@ public class SesionDto {
     private int pacienteId;
     private int empleadoTerapeutaId;
     private int tipoSesionId;
-    private int empleadoAdminId; // ✅ Agregado
+    private Integer empleadoAdminId; // ✅ Agregado
     private LocalDate fechaSesion;
-    private LocalTime horaInicio;
+    private LocalTime hora;
     private String estado;
 }

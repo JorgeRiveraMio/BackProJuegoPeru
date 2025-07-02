@@ -8,4 +8,5 @@ import com.projuegoperu.BackProJuegoPeru.Models.Entity.Sesion;
 
 public interface  SesionRepository extends JpaRepository<Sesion, Integer>{
     List<Sesion> findByPacienteId(Integer pacienteId);
+    List<Sesion> findByTerapeutaIdUsuario(Integer idUsuario);
 }
