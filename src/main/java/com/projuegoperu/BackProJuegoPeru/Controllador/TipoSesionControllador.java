@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/tipos-sesion")
-public class TipoServiceControllador {
+public class TipoSesionControllador {
     @Autowired
     private TipoSesionService tipoSesionService;
 

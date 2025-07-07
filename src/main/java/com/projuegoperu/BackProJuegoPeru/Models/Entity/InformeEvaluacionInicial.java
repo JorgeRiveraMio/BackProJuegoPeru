@@ -30,7 +30,7 @@ public class InformeEvaluacionInicial {
 //    @Column(name = "archivo_url", length = 255)
 //    private String archivoUrl;
     @Lob
-    @Column(name = "archivo_pdf", nullable = false)
+    @Column(name = "archivo_pdf", nullable = false, columnDefinition = "LONGBLOB")
     private byte[] archivoPdf;
 
     @Column(columnDefinition = "TEXT")
