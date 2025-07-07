@@ -34,17 +34,17 @@ public class InformeEvaluacionInicialService {
     }
     public List<InformeEvaluacionInicial> listarInformeEvaluacionInicial(){return informeEvaluacionInicialRepository.findAll();}
 
-    public InformeEvaluacionInicial actualizarInforme(Integer id, InformeEvaluacionInicial informeActualizado) {
-        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
-
-        // Actualizar campos
-        informe.setFechaUltimaTerapia(informeActualizado.getFechaUltimaTerapia());
-        informe.setArchivoUrl(informeActualizado.getArchivoUrl());
-        informe.setObservaciones(informeActualizado.getObservaciones());
-        informe.setEstadoInforme(informeActualizado.getEstadoInforme());
-
-        return informeEvaluacionInicialRepository.save(informe);
-    }
+//    public InformeEvaluacionInicial actualizarInforme(Integer id, InformeEvaluacionInicial informeActualizado) {
+//        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
+//
+//        // Actualizar campos
+//        informe.setFechaUltimaTerapia(informeActualizado.getFechaUltimaTerapia());
+//        informe.setArchivoUrl(informeActualizado.getArchivoUrl());
+//        informe.setObservaciones(informeActualizado.getObservaciones());
+//        informe.setEstadoInforme(informeActualizado.getEstadoInforme());
+//
+//        return informeEvaluacionInicialRepository.save(informe);
+//    }
 
 }
