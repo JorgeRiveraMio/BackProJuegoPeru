@@ -2,6 +2,7 @@ package com.projuegoperu.BackProJuegoPeru.Services;
 
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.InformeEvaluacionInicial;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
+import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoInforme;
 import com.projuegoperu.BackProJuegoPeru.Repository.InformeEvaluacionInicialRepository;
 import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,17 +42,37 @@ public class InformeEvaluacionInicialService {
 
     public List<InformeEvaluacionInicial> listarInformeEvaluacionInicial(){return informeEvaluacionInicialRepository.findAll();}
 
-//    public InformeEvaluacionInicial actualizarInforme(Integer id, InformeEvaluacionInicial informeActualizado) {
-//        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
-//
-//        // Actualizar campos
-//        informe.setFechaUltimaTerapia(informeActualizado.getFechaUltimaTerapia());
-//        informe.setArchivoUrl(informeActualizado.getArchivoUrl());
-//        informe.setObservaciones(informeActualizado.getObservaciones());
-//        informe.setEstadoInforme(informeActualizado.getEstadoInforme());
-//
-//        return informeEvaluacionInicialRepository.save(informe);
-//    }
+    public InformeEvaluacionInicial actualizarInforme(Integer id, InformeEvaluacionInicial informeActualizado) {
+        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
+
+        // Actualizar campos
+        informe.setFechaUltimaTerapia(informeActualizado.getFechaUltimaTerapia());
+        informe.setArchivoUrl(informeActualizado.getArchivoUrl());
+        informe.setObservaciones(informeActualizado.getObservaciones());
+        informe.setEstadoInforme(informeActualizado.getEstadoInforme());
+
+        return informeEvaluacionInicialRepository.save(informe);
+    }
+
+    public InformeEvaluacionInicial actualizarInformeAprobado(Integer id) {
+        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
+
+        // Cambiar solo el estado a "Aprobado"
+        informe.setEstadoInforme(EstadoInforme.APROBADO);
+
+        return informeEvaluacionInicialRepository.save(informe);
+    }
+    public InformeEvaluacionInicial actualizarInformeDesAprobado(Integer id) {
+        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
+
+        // Cambiar solo el estado a "Aprobado"
+        informe.setEstadoInforme(EstadoInforme.DESAPROBADO);
+
+        return informeEvaluacionInicialRepository.save(informe);
+    }
+
 
 }

@@ -78,14 +78,22 @@ public class InformeEvaluacionInicialController {
         List<InformeEvaluacionInicial> informes = informeEvaluacionInicialService.listarInformeEvaluacionInicial();
         return ResponseEntity.ok(informes);
     }
-//    @PutMapping("actualizarId/{id}")
-//    public ResponseEntity<InformeEvaluacionInicial> actualizarInforme(
-//            @PathVariable Integer id,
-//            @RequestBody InformeEvaluacionInicial informeActualizado) {
-//
-//        InformeEvaluacionInicial informe = informeEvaluacionInicialService.actualizarInforme(id, informeActualizado);
-//        return ResponseEntity.ok(informe);
-//    }
+    @PutMapping("/aprobarId/{id}")
+    public ResponseEntity<InformeEvaluacionInicial> actualizarInformeAprobado(
+            @PathVariable Integer id          ) {
+
+        InformeEvaluacionInicial informe = informeEvaluacionInicialService.actualizarInformeAprobado(id);
+        return ResponseEntity.ok(informe);
+    }
+
+    @PutMapping("/desaprobarId/{id}")
+    public ResponseEntity<InformeEvaluacionInicial> actualizarInformeDesaprobar(
+            @PathVariable Integer id          ) {
+
+        InformeEvaluacionInicial informe = informeEvaluacionInicialService.actualizarInformeDesAprobado(id);
+        return ResponseEntity.ok(informe);
+    }
+
     @PutMapping("/actualizarId/{id}")
     public ResponseEntity<InformeEvaluacionInicial> actualizarInforme(
             @PathVariable Integer id,
