@@ -27,11 +27,8 @@ public class InformeEvaluacionInicial {
     @Column(name = "fecha_ultima_terapia")
     private LocalDate fechaUltimaTerapia;
 
-//    @Column(name = "archivo_url", length = 255)
-//    private String archivoUrl;
-    @Lob
-    @Column(name = "archivo_pdf", nullable = false)
-    private byte[] archivoPdf;
+    @Column(name = "archivo_url", length = 500) // Puedes ajustar el length si deseas
+    private String archivoUrl;
 
     @Column(columnDefinition = "TEXT")
     private String observaciones;

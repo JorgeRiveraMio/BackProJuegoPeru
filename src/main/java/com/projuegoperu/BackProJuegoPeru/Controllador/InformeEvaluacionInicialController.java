@@ -1,5 +1,6 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.InformeEvaluacionDTO;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.InformeEvaluacionInicial;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Paciente;
 import com.projuegoperu.BackProJuegoPeru.Models.Enums.EstadoInforme;
@@ -7,13 +8,10 @@ import com.projuegoperu.BackProJuegoPeru.Repository.InformeEvaluacionInicialRepo
 import com.projuegoperu.BackProJuegoPeru.Repository.PacienteRepository;
 import com.projuegoperu.BackProJuegoPeru.Services.InformeEvaluacionInicialService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,31 +36,31 @@ public class InformeEvaluacionInicialController {
 //        }
 //        return ResponseEntity.ok(guardado);
 //    }
+    
     @PostMapping("/guardar")
-    public ResponseEntity<InformeEvaluacionInicial> guardarInformeConArchivo(
-            @RequestParam("pacienteId") Integer pacienteId,
-            @RequestParam("fechaUltimaTerapia") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaUltimaTerapia,
-            @RequestParam("observaciones") String observaciones,
-            @RequestParam("archivo") MultipartFile archivoPdf
-    ) {
+    public ResponseEntity<InformeEvaluacionInicial> guardarInforme(
+            @RequestPart("dto") InformeEvaluacionDTO dto,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            Paciente paciente = pacienteRepository.findById(pacienteId)
+            Paciente paciente = pacienteRepository.findById(dto.getPacienteId())
                     .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
             InformeEvaluacionInicial informe = new InformeEvaluacionInicial();
             informe.setPaciente(paciente);
-            informe.setFechaUltimaTerapia(fechaUltimaTerapia);
-            informe.setObservaciones(observaciones);
-            informe.setArchivoPdf(archivoPdf.getBytes()); // ← PDF aquí
+            informe.setFechaUltimaTerapia(dto.getFechaUltimaTerapia());
+            informe.setObservaciones(dto.getObservaciones());
+            informe.setArchivoUrl(dto.getUrlArchivo()); // Ya viene con la URL de Cloudinary
             informe.setEstadoInforme(EstadoInforme.PENDIENTE);
 
             InformeEvaluacionInicial guardado = informeEvaluacionInicialService.Guardar(informe);
-
             return ResponseEntity.ok(guardado);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    
 
 
 //    @GetMapping("/obtenerId/{id}")
@@ -88,31 +86,28 @@ public class InformeEvaluacionInicialController {
 //        InformeEvaluacionInicial informe = informeEvaluacionInicialService.actualizarInforme(id, informeActualizado);
 //        return ResponseEntity.ok(informe);
 //    }
-@PutMapping("/actualizarId/{id}")
-public ResponseEntity<InformeEvaluacionInicial> actualizarInforme(
-        @PathVariable Integer id,
-        @RequestParam("pacienteId") Integer pacienteId,
-        @RequestParam("fechaUltimaTerapia") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaUltimaTerapia,
-        @RequestParam("observaciones") String observaciones,
-        @RequestParam(value = "archivo", required = false) MultipartFile archivoPdf
-) {
-        Optional<InformeEvaluacionInicial> informe = informeRepo.findById(id);
-        if (informe.isEmpty()) {
+    @PutMapping("/actualizarId/{id}")
+    public ResponseEntity<InformeEvaluacionInicial> actualizarInforme(
+            @PathVariable Integer id,
+            @RequestBody InformeEvaluacionDTO dto
+    ) {
+        Optional<InformeEvaluacionInicial> informeOpt = informeRepo.findById(id);
+        if (informeOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        InformeEvaluacionInicial informeEncontrado = informe.get();
-        Paciente paciente = pacienteRepository.findById(pacienteId)
+
+        InformeEvaluacionInicial informeEncontrado = informeOpt.get();
+
+        Paciente paciente = pacienteRepository.findById(dto.getPacienteId())
                 .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
 
         informeEncontrado.setPaciente(paciente);
-        informeEncontrado.setFechaUltimaTerapia(fechaUltimaTerapia);
-        informeEncontrado.setObservaciones(observaciones);
-        if (archivoPdf != null && !archivoPdf.isEmpty()) {
-            try {
-                informeEncontrado.setArchivoPdf(archivoPdf.getBytes());
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
+        informeEncontrado.setFechaUltimaTerapia(dto.getFechaUltimaTerapia());
+        informeEncontrado.setObservaciones(dto.getObservaciones());
+
+        // Solo actualiza si se envió una nueva URL
+        if (dto.getUrlArchivo() != null && !dto.getUrlArchivo().isBlank()) {
+            informeEncontrado.setArchivoUrl(dto.getUrlArchivo());
         }
 
         InformeEvaluacionInicial actualizado = informeEvaluacionInicialService.Guardar(informeEncontrado);
@@ -120,17 +115,19 @@ public ResponseEntity<InformeEvaluacionInicial> actualizarInforme(
     }
 
     @GetMapping("/ver/{id}")
-    public ResponseEntity<byte[]> verInformePdf(@PathVariable Integer id) {
+    public ResponseEntity<String> obtenerUrlInformePdf(@PathVariable Integer id) {
         InformeEvaluacionInicial informe = informeRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Informe no encontrado"));
 
-        byte[] archivo = informe.getArchivoPdf();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.inline().filename("informe_" + id + ".pdf").build());
-
-        return new ResponseEntity<>(archivo, headers, HttpStatus.OK);
+        return ResponseEntity.ok(informe.getArchivoUrl());
     }
+
+    @GetMapping("/paciente/{id}")
+    public List<InformeEvaluacionInicial> getInformesPorPaciente(@PathVariable Integer id) {
+        return informeEvaluacionInicialService.findByPacienteId(id);
+    }
+
+
+
 
 }

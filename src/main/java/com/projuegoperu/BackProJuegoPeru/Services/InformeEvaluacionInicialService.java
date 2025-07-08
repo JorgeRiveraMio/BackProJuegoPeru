@@ -32,6 +32,13 @@ public class InformeEvaluacionInicialService {
 
         return informeEvaluacionInicialRepository.findById(id);
     }
+    
+    public List<InformeEvaluacionInicial> findByPacienteId(Integer pacienteId) {
+        Paciente paciente = pacienteRepository.findById(pacienteId)
+            .orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado con ID: " + pacienteId));
+        return informeEvaluacionInicialRepository.findByPaciente(paciente);
+    }
+
     public List<InformeEvaluacionInicial> listarInformeEvaluacionInicial(){return informeEvaluacionInicialRepository.findAll();}
 
 //    public InformeEvaluacionInicial actualizarInforme(Integer id, InformeEvaluacionInicial informeActualizado) {
