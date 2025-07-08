@@ -74,5 +74,14 @@ public class InformeEvaluacionInicialService {
         return informeEvaluacionInicialRepository.save(informe);
     }
 
+    public InformeEvaluacionInicial actualizarComentarioInforme(Integer id, String comentario) {
+        InformeEvaluacionInicial informe = informeEvaluacionInicialRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Informe no encontrado"));
+
+        informe.setObservaciones(comentario);  // Solo se actualiza el comentario
+
+        return informeEvaluacionInicialRepository.save(informe);
+    }
+
 
 }

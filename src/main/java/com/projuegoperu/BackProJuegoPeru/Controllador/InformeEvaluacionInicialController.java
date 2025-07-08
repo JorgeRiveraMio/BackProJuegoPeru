@@ -135,6 +135,15 @@ public class InformeEvaluacionInicialController {
         return informeEvaluacionInicialService.findByPacienteId(id);
     }
 
+    @PutMapping("/actualizarComentario/{id}")
+    public ResponseEntity<InformeEvaluacionInicial> actualizarComentario(
+            @PathVariable Integer id,
+            @RequestBody String comentario) {
+
+        InformeEvaluacionInicial informe = informeEvaluacionInicialService.actualizarComentarioInforme(id, comentario);
+        return ResponseEntity.ok(informe);
+    }
+
 
 
 
