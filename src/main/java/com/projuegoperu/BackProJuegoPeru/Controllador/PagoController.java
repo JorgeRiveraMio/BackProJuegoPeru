@@ -1,8 +1,11 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 
+import com.mercadopago.resources.preference.Preference;
+import com.projuegoperu.BackProJuegoPeru.Models.DTO.CrearPagoRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Pago;
-import com.projuegoperu.BackProJuegoPeru.Services.PagoServices;
+import com.projuegoperu.BackProJuegoPeru.Services.MercadoPagoService;
+import com.projuegoperu.BackProJuegoPeru.Services.PagoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,11 +18,36 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class PagoController {
     @Autowired
-    private PagoServices pagoService;
+    private PagoService pagoService;
+
+    @Autowired
+    private MercadoPagoService mercadoPagoService;
 
     @GetMapping
     public ResponseEntity<List<Pago>> getAll() {
         return ResponseEntity.ok(pagoService.findAll());
+    }
+
+    @PostMapping("/preferencia")
+    public ResponseEntity<String> generarPreferencia(@RequestBody CrearPagoRequest request) {
+        try {
+            String referenciaUnica = "pago_" + System.currentTimeMillis(); // o UUID
+
+            // Crear el registro en la BD
+            pagoService.crearPagoInicial(request, referenciaUnica);
+
+            // Crear preferencia en Mercado Pago
+            Preference preferencia = mercadoPagoService.crearPreferencia(
+                    request.getDescripcion(),
+                    request.getMonto(),
+                    referenciaUnica // importante para el webhook
+            );
+
+            return ResponseEntity.ok(preferencia.getInitPoint());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error al crear preferencia");
+        }
     }
 
     @GetMapping("/{id}")
