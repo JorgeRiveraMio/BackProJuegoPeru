@@ -1,12 +1,15 @@
 package com.projuegoperu.BackProJuegoPeru.Controllador;
 
 
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 import com.projuegoperu.BackProJuegoPeru.Models.DTO.CrearPagoRequest;
 import com.projuegoperu.BackProJuegoPeru.Models.Entity.Pago;
 import com.projuegoperu.BackProJuegoPeru.Services.MercadoPagoService;
 import com.projuegoperu.BackProJuegoPeru.Services.PagoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +47,13 @@ public class PagoController {
             );
 
             return ResponseEntity.ok(preferencia.getInitPoint());
-        } catch (Exception e) {
+        }catch (MPException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al generar la preferencia: " + e.getMessage());
+        }
+        catch (Exception  e) {
+
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error al crear preferencia");
         }
