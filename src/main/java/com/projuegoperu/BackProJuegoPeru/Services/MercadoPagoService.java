@@ -33,9 +33,9 @@ public class MercadoPagoService {
                 .build();
 
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("https://tusitio.com/success")
-                .failure("https://tusitio.com/failure")
-                .pending("https://tusitio.com/pending")
+                .success("https://projuegoperu.vercel.app//success")
+                .failure("https://projuegoperu.vercel.app//failure")
+                .pending("https://projuegoperu.vercel.app//pending")
                 .build();
 
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
