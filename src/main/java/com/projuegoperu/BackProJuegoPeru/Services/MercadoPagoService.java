@@ -33,7 +33,7 @@ public class MercadoPagoService {
                 .build();
 
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("https://projuegoperu.vercel.app//success")
+                .success("https://projuegoperu.vercel.app//pago-exitoso")
                 .failure("https://projuegoperu.vercel.app//failure")
                 .pending("https://projuegoperu.vercel.app//pending")
                 .build();
